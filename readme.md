@@ -6,8 +6,8 @@
 1. To Hoi Lam 3035667455
 2. Ng Chun Hei 3035690634
 
-### Game description: 
-* A stratergy game where you guessed the position of your opponent's ships. In our project, you will be battling against an AI. If you guessed all your's oppoent's ship first, you won. Otherwise, you loss.
+### Game description:
+* A strategy game where you guessed the position of your opponent's ships. In our project, you will be battling against an AI. If you guessed all your opponent's ships first, you win. Otherwise, you loss.
 * Board size will be 10x10, where there will be...
     * Size 2 Ship x4
     * Size 3 Ship x3
@@ -15,7 +15,7 @@
     * Size 5 Ship x1
 
 ###  Game rules:
-* Each turn you will guess the location of your opponent's ship by marking a position on the 10x10 baords
+* Each turn you will guess the location of your opponent's ship by marking a position on a 10x10 board
 
 ### Game features:
 * Randomly generate a board for both AI and player (Requirement 1)
