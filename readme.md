@@ -4,7 +4,7 @@
 ## Game: Battleship
 ### Members:
 1. To Hoi Lam 3035667455
-2. Ng Chun Hei 
+2. Ng Chun Hei 3035690634
 
 ### Game description: 
 * A stratergy game where you guessed the position of your opponent's ships. In our project, you will be battling against an AI. If you guessed all your's oppoent's ship first, you won. Otherwise, you loss.
