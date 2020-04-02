@@ -1,18 +1,20 @@
 # Group162Battleship
 
 ## Group: 162
-## Game: Battleship
+## Game: Battleship Remastered
 ### Members:
 1. To Hoi Lam 3035667455
 2. Ng Chun Hei 3035690634
 
 ### Game description:
-* A strategy game where you guessed the position of your opponent's ships. In our project, you will be battling against an AI. If you guessed all your opponent's ships first, you win. Otherwise, you loss.
-* Board size will be 10x10, where there will be...
-    * Size 2 Ship x4
-    * Size 3 Ship x3
-    * Size 4 Ship x2
-    * Size 5 Ship x1
+* A strategy game where you will be guessing the coordinates of the AI's ships. If you guessed all the positions of the AI's ships first, you win. Otherwise, you lose.
+
+* Each side has a 10x10 board and 5 classes of ships to put on it:
+    * an Aircraft carrier which takes up 5 spaces,
+    * a battleship which takes up 4 spaces,
+    * a destroyer which takes up 3 spaces,
+    * a submarine which takes up 3 spaces,
+    * a torpedo boat which takes up 2 spaces.
 
 ###  Game rules:
 * Each turn you will guess the location of your opponent's ship by marking a position on a 10x10 board
