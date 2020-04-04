@@ -1,0 +1,5 @@
+ac Graf_Zeppelin end
+bb Bismarck Tirpitz Scharnhorst Gneisenau end
+ca Admiral_Hipper Blucher Prinz_Eugen Deutschland Admiral_Scheer Admiral_Graf_Spee end
+ss Type_VII Type_IX Type_XXI Type XXIII end
+dd Diether_von_Roeder Hans_Ludemann Hermann_Kunne Kari_Gaiser Wihelm_Heidkamp Anton_Schmitt end
