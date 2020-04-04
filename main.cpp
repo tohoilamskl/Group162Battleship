@@ -133,6 +133,7 @@ void genfleet(ships uss[50], ships kms[50], ships hms[50], ships rm[50], ships i
   srand (time(NULL));
   if (country == "us")
   {
+    country = "United States";
     num = rand() % 10 + 1;
     ac = uss[num].name;
     num1 = rand() % 10 + 10;
@@ -146,6 +147,7 @@ void genfleet(ships uss[50], ships kms[50], ships hms[50], ships rm[50], ships i
   }
   else if (country == "gb")
   {
+    country = "Great Britain";
     num = rand() % 8 + 0;
     ac = hms[num].name;
     num1 = rand() % 8 + 10;
@@ -159,6 +161,7 @@ void genfleet(ships uss[50], ships kms[50], ships hms[50], ships rm[50], ships i
   }
   else if (country == "italy")
   {
+    country = "The Kingdom of Italy";
     num = rand() % 2 + 0;
     ac = rm[num].name;
     num1 = rand() % 7 + 10;
@@ -172,6 +175,7 @@ void genfleet(ships uss[50], ships kms[50], ships hms[50], ships rm[50], ships i
   }
   else if (country == "germany")
   {
+    country = "German Reich";
     num = rand() % 1 + 0;
     ac = kms[num].name;
     num1 = rand() % 4 + 10;
@@ -185,6 +189,7 @@ void genfleet(ships uss[50], ships kms[50], ships hms[50], ships rm[50], ships i
   }
   else if (country == "japan")
   {
+    country = "Empire of Great Japan";
     num = rand() % 8 + 0;
     ac = ijn[num].name;
     num1 = rand() % 10 + 10;
@@ -196,7 +201,8 @@ void genfleet(ships uss[50], ships kms[50], ships hms[50], ships rm[50], ships i
     num4 = rand() % 10 + 40;
     dd = ijn[num4].name;
   }
-  cout<<"Your aircraft carrier is: "<<ac<<endl;
+
+  cout<<endl<<"You have picked "<<country<<":"<<endl<<"Your aircraft carrier is: "<<ac<<endl;
   cout<<"Your battleship is: "<<bb<<endl;
   cout<<"Your heavy cruiser is: "<<ca<<endl;
   cout<<"Your submarine is: "<<ss<<endl;
@@ -388,9 +394,9 @@ int main() {
     cout<<"To play as Great Britain, type \"gb\" "<<endl;
     cout<<"To play as German Reich, type \"germany\" "<<endl;
     cout<<"To play as the Kingdom of Italy, type \"italy\" "<<endl;
-    cout<<"To play as the Empire of Great Japan, type \"japan\" "<<endl;
+    cout<<"To play as the Empire of Great Japan, type \"japan\" "<<endl<<endl;
     string country;
-    cin>>country;
+    getline(cin,country);
     genfleet(uss, kms, hms, rm, ijn, country);
 
 
