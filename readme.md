@@ -12,9 +12,9 @@
 * Each side has a 10x10 board and 5 classes of ships to put on it:
     * an Aircraft carrier which takes up 5 spaces,
     * a battleship which takes up 4 spaces,
-    * a destroyer which takes up 3 spaces,
+    * a heavy cruiser which takes up 3 spaces,
     * a submarine which takes up 3 spaces,
-    * a torpedo boat which takes up 2 spaces.
+    * a destroyer which takes up 2 spaces.
 
 ###  Game rules:
 * Each turn you will guess the location of your opponent's ship by marking a position on a 10x10 board
