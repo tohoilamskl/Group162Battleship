@@ -1,0 +1,5 @@
+ac Aquila Sparviero end
+bb Andrea_Doria Caio_Duilio Conte_di_Cavour Giuulio_Cesare Littorio Roma Vittorio_Veneto end
+ca Bolzano Zara Fiume Gorizia Pola Trento Trieste end
+ss Acciaio Settembrini Balilla Bandiera Brin Cagni Foca Glauco Mameli Marconi
+dd Ascari Borea Corsaro Dardo Espero Folgore Geniere Malestrale Libeccio Mirabello 

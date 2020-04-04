@@ -1,0 +1,5 @@
+ac Coral_Sea Enterprise Essex Yorktown Hornet Intrepid Iwo Jima Lexington Midway Wasp
+bb Arizona Indiana Iowa Missouri New_Jersey North_Carolina South_Dakota Washington West Virginia
+ca Astoria Baltimore Boston Chicago Houston Indianapolis Louisville Quincy Rochester Saint Paul
+ss Albacore Balao Cuttlefish Dace Entemedor Flasher Gabilan Loggerhead Manta Nautilus
+dd Allen Bagley Caldwell Fletcher Gridley Mahan Porter Wickes Ellet Champlin
