@@ -23,6 +23,8 @@
 * Randomly generate a board for both AI and player (Requirement 1)
 * The game will records all the previous game history into a txt file (Requirement 4)
     * Recording your name, win/lose, number of moves used
+    * When the program extract game history from the txt file, it will store in a dynamic memory, and the program will use a linked list to sort the records from least moves used to most moves used (Requirement 3)
+* The program can also save the unfinished game into a txt file, and you can resume the game on another time (Requirement 4)
 * Then the program can retrieve the records from the txt file into a data structure, for displaying the records (Requirement 2)
 * Codes to display the boards, and codes to display the game records will be in a different file than the main program codes (requirement 5)
 * An AI for computer's moves
