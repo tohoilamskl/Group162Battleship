@@ -30,6 +30,18 @@ struct ships
   string name;
 };
 
+struct navy
+{
+  string name;
+  int xposini;
+  int xposfnl;
+  int yposini;
+  int yposfnl;
+};
+
+
+
+
 //function for stroing all the names of all the countries' ships to the given struct
 void naming(ships arr[50],string s)
 {
@@ -126,9 +138,9 @@ void naming(ships arr[50],string s)
 }
 
 //A function that generates the ships' names for the player's fleet by the country they inputted
-void genfleet(ships uss[50], ships kms[50], ships hms[50], ships rm[50], ships ijn[50], string country)
+void genfleet(ships uss[50], ships kms[50], ships hms[50], ships rm[50], ships ijn[50], string country, navy arr[5])
 {
-  string ac,bb,ca,ss,dd;
+  string ac, bb, ca, ss, dd;
   int num, num1, num2, num3, num4;
   srand (time(NULL));
   if (country == "us")
@@ -189,7 +201,7 @@ void genfleet(ships uss[50], ships kms[50], ships hms[50], ships rm[50], ships i
   }
   else if (country == "japan")
   {
-    country = "Empire of Great Japan";
+    country = "the Empire of Great Japan";
     num = rand() % 8 + 0;
     ac = ijn[num].name;
     num1 = rand() % 10 + 10;
@@ -201,6 +213,13 @@ void genfleet(ships uss[50], ships kms[50], ships hms[50], ships rm[50], ships i
     num4 = rand() % 10 + 40;
     dd = ijn[num4].name;
   }
+
+  arr[0].name = ac;
+  arr[1].name = bb;
+  arr[2].name = ca;
+  arr[3].name = ss;
+  arr[4].name = dd;
+
 
   cout<<endl<<"You have picked "<<country<<":"<<endl<<"Your aircraft carrier is: "<<ac<<endl;
   cout<<"Your battleship is: "<<bb<<endl;
@@ -369,7 +388,277 @@ void generateRandomBoard(char board[][10]) {
     placeShip(board, 5);  //place the size-5 ship
     placeShip(board, 4);  //place the size-4 ship
     placeShip(board, 3);  //place the size-3 ship
+    placeShip(board, 3);  //place the size-3ship
     placeShip(board, 2);  //place the size-2 ship
+}
+
+//function for validating the final coordinates of a ship when deploying, and store the ships coordinates to the player board if validated successfully
+bool poschecker1(int irow, int icol, int frow, int fcol, char board[][10], int size)
+{
+  //check if the ship is overlapped by another ship or not
+  if (board[frow][fcol] != 'O')
+  {
+    int flag = 0;
+
+    //check if the ship is placed horizontally
+    if (irow == frow)
+    {
+      //check if the final coordinates is the right of the initial coordinates, and swap them if it is not the case
+      if (icol > fcol)
+      {
+        int temp = icol;
+        icol = fcol;
+        fcol = temp;
+        flag = 1;
+      }
+
+      //check whether coordinates in between have been used or not
+      for (int i = icol+1; i <= fcol - flag; i++)
+      {
+
+        if (board[irow][i] == 'O')
+        {
+          return false;
+        }
+      }
+
+      //store the coordinates the ship
+      for (int i = icol+1; i <= fcol - flag; i++)
+      {
+        board[irow][i] = 'O';
+      }
+
+      //storing the initial coordinates of the ship if the final and initial coordinates are swapped
+      if (flag == 1)
+      {
+        board[irow][icol] = 'O';
+      }
+      return true;
+    }
+    else
+    {
+      //check if the final coordinates is the below the initial coordinates, and swap them if it is not the case
+      if (irow > frow)
+      {
+        int temp = irow;
+        irow = frow;
+        frow = temp;
+        flag = 1;
+
+      }
+      //check whether coordinates in between have been used or not
+      for (int i = irow+1; i <= frow - flag; i++)
+      {
+        if (board[i][icol] == 'O')
+        {
+          cout<<i<<endl;
+          return false;
+        }
+      }
+
+      //store the coordinates the ship
+      for (int i = irow+1; i <= frow - flag; i++)
+      {
+        board[i][icol] = 'O';
+      }
+
+      //storing the initial coordinates of the ship if the final and initial coordinates are swapped
+      if (flag == 1)
+      {
+        board[irow][icol] = 'O';
+      }
+
+      return true;
+    }
+  }
+  return false;
+
+}
+
+//function for validating the initial coordinates of a ship when deploying
+bool poschecker(int row, int col, char board[][10], int size)
+{
+
+  //check if the ship is overlapped by another ship or not
+  if (board[row][col] != 'O')
+  {
+
+    //check if the left side of the of the initial coordinates has enough spaces for putting the ship
+    int left = col -size;
+    if (left > 0)
+    {
+      int flag = 0;
+
+      //check if the any ship used one of the coordinates on the left side
+      for (int i = left; i < col; i++)
+      {
+        if (board[row][i] == 'O')
+        {
+          flag = 1;
+          break;
+        }
+      }
+
+      //store the initial coordinates and stop the program if there is enough spaces
+      if (flag == 0)
+      {
+        board[row][col] = 'O';
+        return true;
+      }
+    }
+
+    //check if the right side of the of the initial coordinates has enough spaces for putting the ship
+    int right = col + size;
+    if (right <= 9)
+    {
+      int flag = 0;
+
+      //check if the any ship used one of the coordinates on the left side
+      for (int i = col; i < right; i++)
+      {
+        if (board[row][i] == 'O')
+        {
+          flag = 1;
+          break;
+        }
+      }
+
+      //store the initial coordinates and stop the program if there is enough spaces
+      if (flag == 0)
+      {
+        board[row][col] = 'O';
+        return true;
+      }
+    }
+
+    //check if the north side of the of the initial coordinates has enough spaces for putting the ship
+    int up = row - size;
+    if (up > 0)
+    {
+      int flag = 0;
+
+      //check if the any ship used one of the coordinates on the north side
+      for (int i = up; i < row; i++)
+      {
+        if (board[i][col] == 'O')
+        {
+          flag = 1;
+          break;
+        }
+      }
+
+      //store the initial coordinates and stop the program if there is enough spaces
+      if (flag == 0)
+      {
+        board[row][col] = 'O';
+        return true;
+      }
+    }
+
+    //check if the south side of the of the initial coordinates has enough spaces for putting the ship
+    int bot = col + size;
+    if (bot <= 9)
+    {
+      int flag = 0;
+
+      //check if the any ship used one of the coordinates on the south side
+      for (int i = row; i < bot; i++)
+      {
+        if (board[i][col] == 'O')
+        {
+          flag = 1;
+          break;
+        }
+      }
+
+      //store the initial coordinates and stop the program if there is enough spaces
+      if (flag == 0)
+      {
+        board[row][col] = 'O';
+        return true;
+      }
+    }
+    return false;
+  }
+  return false;
+}
+
+//function for allowing the player to input the initial and final coordinates of each ships
+void deployment(char board[][10], navy fleet[])
+{
+  string pos[2] = {};
+  pos[0] = "starting";
+  pos[1] = "ending";
+
+
+  int shipsize[5] = {4,3,2,2,1};
+  cout<<endl;
+
+  //prompt user to input coordinates of the ships
+  for (int i = 0; i < 5; i++)
+  {
+    int j = 0;
+    while (true)
+    {
+      cout<<"Please enter the "<<pos[j]<<" coordinates of "<<fleet[i].name<<":"<<endl;
+      int invalidinput = 1;
+      string target;
+      getline(cin,target);
+
+      //check if the coordinates size
+      if (target.size() == 2)
+      {
+
+        //validate the format of the coordinates
+        if (((target[0] >= 'A' && target[0] <= 'J') || (target[0] >= 'a' && target[0] <= 'j')) && target[1] >= '0' && target[1] <= '9')
+        {
+
+          //convert the coordinates if it is in small letter
+          if (target[0] >= 'a' && target[0] <= 'j')
+          {
+              target[0] = target[0] - 'a' + 'A';
+          }
+
+          //validate the initial coordinates and store it, else continue to prompt user for valid input
+          if (j == 0)
+          {
+            fleet[i].yposini = (int)target[0] - 'A';
+            fleet[i].xposini = (int)target[1] - '0';
+
+            if (poschecker(fleet[i].yposini, fleet[i].xposini, boards.player, shipsize[i]))
+            {
+              board[fleet[i].yposini][fleet[i].xposini] = 'O';
+              j++;
+              invalidinput = 0;
+              printBoard();
+            }
+          }
+
+          //validate the final coordinates and store it, else continue to prompt user for valid input
+          else if (j == 1)
+          {
+            fleet[i].yposfnl = (int)target[0] - 'A';
+            fleet[i].xposfnl = (int)target[1] - '0';
+
+            if (pow(fleet[i].yposini - fleet[i].yposfnl, 2) + pow(fleet[i].xposini - fleet[i].xposfnl,2) == pow(shipsize[i],2))
+            {
+              if (poschecker1(fleet[i].yposini, fleet[i].xposini, fleet[i].yposfnl, fleet[i].xposfnl, boards.player, shipsize[i]))
+              {
+                cout<<endl;
+                printBoard();
+                break;
+              }
+            }
+          }
+        }
+      }
+      //prompt error message if the input is invalid
+      if (invalidinput == 1)
+      {
+        cout<<"***Invalid input! Please enter the coordinates correctly.***"<<endl;
+      }
+    }
+  }
 }
 
 int main() {
@@ -385,8 +674,7 @@ int main() {
 
     srand(time(NULL));
 
-    generateRandomBoard(boards.player);
-    generateRandomBoard(boards.AI);
+
 
     int flag = 0;
     printBoard();
@@ -396,8 +684,26 @@ int main() {
     cout<<"To play as the Kingdom of Italy, type \"italy\" "<<endl;
     cout<<"To play as the Empire of Great Japan, type \"japan\" "<<endl<<endl;
     string country;
-    getline(cin,country);
-    genfleet(uss, kms, hms, rm, ijn, country);
+
+    while (true)
+    {
+      getline(cin,country);
+      if (!(country == "us" || country == "gb" || country == "germany" || country == "italy" || country == "japan"))
+      {
+        cout<<"***Invalid country name inputted! Please enter the country name according to the above instructions***"<<endl;
+        continue;
+      }
+      else
+      {
+        break;
+      }
+    }
+    navy fleet[5];
+
+    genfleet(uss, kms, hms, rm, ijn, country, fleet);
+
+    deployment(boards.player, fleet);
+    generateRandomBoard(boards.AI);
 
 
 
