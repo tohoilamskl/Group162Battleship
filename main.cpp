@@ -56,7 +56,14 @@ struct plane
   string hms[3] = {"Swordfish", "Barracuda", "Vildebeest"};
 };
 
+int numofplane[5] = {4,2,1,3,3};
+int plane1, plane2, planeflag;
+
+
 plane bomber;
+
+//array for storing the recon planes used by ijn, kms, rm, uss, hms respectively
+string recon[5] = {"C6N Saiun \"Myrt\"","Arado Ar 196","Caproni Ca.316","Supermarine Walrus","OS2U Kingfisher"};
 
 //array for storing the ap shells used by ijn, kms, rm, uss, hms respectively
 string shell[5] = {"Type 1 AP shell", "38 cm SK C/34 AP shell", "Proiettile Perforante", "Mk. 8 APC shell", "Mk XXII BNT AP shell"};
@@ -170,7 +177,6 @@ void genfleet(ships uss[50], ships kms[50], ships hms[50], ships rm[50], ships i
 {
   string ac, bb, ca, ss, dd;
   int num, num1, num2, num3, num4;
-  srand (time(NULL));
   if (country == "us")
   {
     country = "United States";
@@ -808,15 +814,215 @@ int selcountry(string country)
   return num;
 }
 
+//function for squadron feature
 void squadron(string country)
 {
-  srand (time(NULL));
 
-  if (country == "us")
+  //check if the aircraft carrier is sunk
+  if (sunk(0))
   {
-
+    string sth;
+    cin>>sth;
   }
 
+  //check if the aircraft carrier is out of planes
+  else if (spweapons[0] == 0)
+  {
+    cout<<endl<<"Out of planes to form attack squadrons or reconnaissance! Type anything to confirm"<<endl;
+    string sth;
+    cin>>sth;
+  }
+  else
+  {
+    int num = selcountry(country);
+    cout<<endl<<"***"<<fleet[0].name<<" REPORTING***"<<endl;
+    cout<<radar[num]<<" OPERATIVE"<<endl;
+
+    //to randomize the plane for attack squadron once
+    if(planeflag == 0)
+    {
+      plane1 = rand() % numofplane[num];
+      planeflag = 1;
+    }
+
+    string s = " ready to go";
+
+    //getting the mode for planes
+    cout<<endl<<"***AWAITING ORDERS***"<<endl;
+    cout<<"To launch assault, type \"1\""<<endl<<"To conduct reconnaissance, type \"2\""<<endl;
+
+    while (true)
+    {
+      string plane;
+      cin>>plane;
+
+      //for attacking
+      if (plane == "1")
+      {
+        if (spweapons[1] == 1)
+        {
+
+          //picking a plane for different country
+          cout<<endl;
+          if (num == 0)
+          {
+            cout<<bomber.ijn[plane1]<<s;
+          }
+          else if (num == 1)
+          {
+            cout<<bomber.kms[plane1]<<s;
+          }
+          else if (num == 2)
+          {
+            cout<<bomber.rm[plane1]<<s;
+          }
+          else if (num == 3)
+          {
+            cout<<bomber.hms[plane1]<<s;
+          }
+          else if (num == 4)
+          {
+            cout<<bomber.uss[plane1]<<s;
+          }
+
+          cout<<endl<<endl<<"***AWAITING ASSUALT COORDINATES***"<<endl;
+          cout<<"Please enter the center coordinates of the attack zone with a \"+\" pattern"<<endl;
+
+          //getting the center coordinates of the hit zone
+          string center;
+          cin>>center;
+
+          //validating the coordinates
+          while (!(checkvalidinput(center)))
+          {
+            cout<<"Invalid coordinates! Please input valid coordinates"<<endl;
+            getline(cin, center);
+          }
+
+          int centerRow, centerCol;
+          centerRow = (int)center[0] - 'A';
+          centerCol = (int)center[1] - '0';
+
+          //storing all the coordinates of the hit zone to targets[]
+          Target targets[5];
+
+          targets[0].row = centerRow -1;
+          targets[0].col = centerCol;
+
+          for (int i = 0; i < 3; i++)
+          {
+            targets[i+1].row = centerRow;
+            targets[i+1].col = centerCol-1+i;
+          }
+
+          targets[4].row = centerRow +1;
+          targets[4].col = centerCol;
+
+          //firing on the hit zone
+          for (int i = 0; i < 5; i++)
+          {
+            fire(targets[i].row, targets[i].col);
+          }
+          spweapons[1] = 0;
+          spweapons[0] -=1;
+        }
+        else
+        {
+          cout<<"Out of planes to form attack squadron! Please type anything to confirm"<<endl;
+          string sth;
+          cin>>sth;
+        }
+        break;
+      }
+
+      //for recon mode
+      else if (plane == "2")
+      {
+        if (spweapons[2] == 1)
+        {
+          cout<<endl<<recon[num]<<s<<endl;
+        }
+
+        cout<<endl<<"***AWAITING RECONNAISSANCE COORDINATES***"<<endl;
+        cout<<"Please enter the center coordinates of the recon zone with a \"X\" pattern"<<endl;
+
+        //getting the center coordinates of the recon zone
+        string center;
+        cin>>center;
+
+        //validating the coordinates
+        while (!(checkvalidinput(center)))
+        {
+          cout<<"Invalid coordinates! Please input valid coordinates"<<endl;
+          getline(cin, center);
+        }
+
+        int centerRow, centerCol;
+        centerRow = (int)center[0] - 'A';
+        centerCol = (int)center[1] - '0';
+
+        //storing the coordinates of the recon zone
+        Target targets[5];
+
+        int j = 0;
+        for (int i = 0; i < 2; i++)
+        {
+          targets[i].row = centerRow - 1;
+          targets[i].col = centerCol - 1 + j + i;
+          j++;
+        }
+
+        targets[2].row = centerRow;
+        targets[2].col = centerCol;
+
+        j = 0;
+        for (int i = 0; i < 2; i++)
+        {
+          targets[i+3].row = centerRow + 1;
+          targets[i+3].col = centerCol - 1 + j + i;
+          j++;
+        }
+
+        char row[10] = {'A','B','C','D','E','F','G','H','I','J'};
+
+        int flag = 0;
+
+        //scanning on the given zone
+        for (int i = 0; i < 5; i++)
+        {
+
+          //if hostile found
+          if (boards.AI[targets[i].row][targets[i].col] == 'O')
+          {
+            cout<<endl<<"ENEMY SPOTTED IN "<<row[targets[i].row]<<targets[i].col<<endl;
+            boards.playerViewAIBoard[targets[i].row][targets[i].col] = '!';
+            flag = 1;
+          }
+
+          //if no hostile found
+          else
+          {
+            boards.AI[targets[i].row][targets[i].col] = 'X';   //if not hit, mark 'X'
+            boards.playerViewAIBoard[targets[i].row][targets[i].col] = 'X';
+          }
+        }
+
+        cout<<endl<<"***RECONNAISSANCE COMPLETED***"<<endl;
+        if (flag == 0)
+        {
+          cout<<"NO HOSTILE SPOTTED"<<endl;
+        }
+        cout<<endl<<"Please type anything to confirm"<<endl;
+        string sth;
+        cin>>sth;
+        break;
+      }
+      else
+      {
+        cout<<"Invalid command, please type as instructed above"<<endl;
+      }
+    }
+  }
 }
 
 //function for the barrage feature
@@ -933,7 +1139,7 @@ void cruiser(string country)
     }
 
     //getting the firing mode
-    cout<<"***INPUT TORPEDO MODE***"<<endl<<"For horizontal mode, type \"h\""<<endl<<"For vertical mode, type \"v\""<<endl;
+    cout<<endl<<"***INPUT TORPEDO MODE***"<<endl<<"For horizontal mode, type \"h\""<<endl<<"For vertical mode, type \"v\""<<endl;
     char mode;
     cin>>mode;
 
@@ -1010,42 +1216,132 @@ void sub(string country)
 
     //getting the mode for operation
     cout<<"To launch torpedo, type \"torpedo\""<<endl<<"To perform scanning, type \"scanning\""<<endl;
-    string plan;
-    getline(cin,plan);
 
-    //if torpedo is chosen
-    if (plan == "torpedo")
+
+    while (true)
     {
-      //check if the submarine is out of torpedos
-      if (spweapons[5] == 0)
+      string plan;
+      getline(cin,plan);
+      //if torpedo is chosen
+      if (plan == "torpedo")
       {
-        cout<<endl<<"Out of torpedos to perform strike! Type anything to confirm"<<endl;
-        string sth;
-        getline(cin,sth);
-      }
-      else
-      {
-        cout<<endl<<"***ENTER FIRING PATTERN***"<<endl<<"To fire the torpedo horizontally, type \"h\""<<endl<<"To fire the torpedo vertically, type \"v\""<<endl;
-
-        char mode;
-        cin>>mode;
-
-        //validating the mode
-        while (true)
+        //check if the submarine is out of torpedos
+        if (spweapons[5] == 0)
         {
-          if (mode != 'h' && mode != 'v')
+          cout<<endl<<"Out of torpedos to perform strike! Type anything to confirm"<<endl;
+          string sth;
+          getline(cin,sth);
+        }
+        else
+        {
+          cout<<endl<<"***ENTER FIRING PATTERN***"<<endl<<"To fire the torpedo horizontally, type \"h\""<<endl<<"To fire the torpedo vertically, type \"v\""<<endl;
+
+          char mode;
+          cin>>mode;
+
+          //validating the mode
+          while (true)
           {
-            cout<<"Invalid mode! Please input as instructed above"<<endl;
-            cin>>mode;
+            if (mode != 'h' && mode != 'v')
+            {
+              cout<<"Invalid mode! Please input as instructed above"<<endl;
+              cin>>mode;
+            }
+            else
+            {
+              break;
+            }
           }
+
+          //getting the starting point of the torpedo
+          cout<<endl<<"Input the starting point the torpedo's course which is a point along the edge"<<endl;
+          string center;
+          cin>>center;
+
+          //validating the coordinates
+          while (!(checkvalidinput(center)))
+          {
+            cout<<"Invalid coordinates! Please input valid coordinates"<<endl;
+            getline(cin, center);
+          }
+
+          int centerRow, centerCol;
+
+          centerRow = (int)center[0] - 'A';
+          centerCol = (int)center[1] - '0';
+
+          //firing the torpedo horizontally
+          if (mode == 'h')
+          {
+
+            //firing the torpedo from the right side of the map
+            if (centerCol == 9)
+            {
+              for (int i = 0; i < 10; i++)
+              {
+                fire(centerRow, 9-i);
+                if (boards.AI[centerRow][9-i] == '@')
+                {
+                  break;
+                }
+              }
+            }
+
+            //firing the torpedo from the left side of the map
+            else
+            {
+              for (int i = 0; i < 10; i++)
+              {
+                fire(centerRow, i);
+                if (boards.AI[centerRow][i] == '@')
+                {
+                  break;
+                }
+              }
+            }
+          }
+
+          //firing the torpedo vertically
           else
           {
-            break;
-          }
-        }
 
-        //getting the starting point of the torpedo
-        cout<<endl<<"Input the starting point the torpedo's course which is a point along the edge"<<endl;
+            //firing the torpedo from the south side of the map
+            if (centerRow == 9)
+            {
+              for (int i = 0; i < 10; i++)
+              {
+                fire(9-i, centerCol);
+                if (boards.AI[9-i][centerCol] == '@')
+                {
+                  break;
+                }
+              }
+            }
+
+            //firing the torpedo from the north side of the map
+            else
+            {
+              for (int i = 0; i < 10; i++)
+              {
+                fire(i, centerCol);
+                if (boards.AI[i][centerCol] == '@')
+                {
+                  break;
+                }
+              }
+            }
+          }
+        spweapons[5] -= 1;
+        }
+        break;
+      }
+
+      //if scanning mode is chosen
+      else if (plan == "scanning")
+      {
+
+        //getting the center coordinates of the scanning zone
+        cout<<"Please enter the center coordinates of a 3x3 grid"<<endl;
         string center;
         cin>>center;
 
@@ -1057,142 +1353,62 @@ void sub(string country)
         }
 
         int centerRow, centerCol;
-
         centerRow = (int)center[0] - 'A';
         centerCol = (int)center[1] - '0';
 
-        //firing the torpedo horizontally
-        if (mode == 'h')
+        //storing all the coordinates of the scanning zone to targets[]
+        Target targets[9];
+
+        //for the first row
+        for (int i = 0; i < 3; i++)
+        {
+          targets[i].row = centerRow -1;
+          targets[i].col = centerCol -1 +i;
+        }
+
+        //for the second row
+        for (int i = 0; i < 3; i++)
+        {
+          targets[i+3].row = centerRow;
+          targets[i+3].col = centerCol-1+i;
+        }
+
+        //for the third row
+        for(int i = 0; i < 3; i++)
+        {
+          targets[i+6].row = centerRow+1;
+          targets[i+6].col = centerCol-1 +i;
+        }
+
+        //scanning the zone
+        int flag = 0;
+        for (int i = 0; i < 9; i++)
         {
 
-          //firing the torpedo from the right side of the map
-          if (centerCol == 9)
+          //if AI vessel found in the zone
+          if (boards.AI[targets[i].row][targets[i].col] == 'O')
           {
-            for (int i = 0; i < 10; i++)
-            {
-              fire(centerRow, 9-i);
-              if (boards.AI[centerRow][9-i] == '@')
-              {
-                break;
-              }
-            }
-          }
-
-          //firing the torpedo from the left side of the map
-          else
-          {
-            for (int i = 0; i < 10; i++)
-            {
-              fire(centerRow, i);
-              if (boards.AI[centerRow][i] == '@')
-              {
-                break;
-              }
-            }
+            cout<<"***SONAR SWEEP DETECTS ENEMY VESSEL --- PRECISE LOCATION UNCONFIRMED***"<<endl;
+            flag = 1;
+            break;
           }
         }
 
-        //firing the torpedo vertically
-        else
+        //if no AI vessel are found in the zone
+        if (flag == 0)
         {
-
-          //firing the torpedo from the south side of the map
-          if (centerRow == 9)
-          {
-            for (int i = 0; i < 10; i++)
-            {
-              fire(9-i, centerCol);
-              if (boards.AI[9-i][centerCol] == '@')
-              {
-                break;
-              }
-            }
-          }
-
-          //firing the torpedo from the north side of the map
-          else
-          {
-            for (int i = 0; i < 10; i++)
-            {
-              fire(i, centerCol);
-              if (boards.AI[i][centerCol] == '@')
-              {
-                break;
-              }
-            }
-          }
+          cout<<"***SONAR SWEEP CONFIRMS NO HOSTILE IN SELECTED WATERS***"<<endl;
         }
-      spweapons[5] -= 1;
+
+        cout<<"Type anything to confirm"<<endl;
+        string sth;
+        cin>>sth;
+        break;
       }
-    }
-
-    //if scanning mode is chosen
-    else
-    {
-
-      //getting the center coordinates of the scanning zone
-      cout<<"Please enter the center coordinates of a 3x3 grid"<<endl;
-      string center;
-      cin>>center;
-
-      //validating the coordinates
-      while (!(checkvalidinput(center)))
+      else
       {
-        cout<<"Invalid coordinates! Please input valid coordinates"<<endl;
-        getline(cin, center);
+        cout<<"Invalid command, please type as instructed above"<<endl;
       }
-
-      int centerRow, centerCol;
-      centerRow = (int)center[0] - 'A';
-      centerCol = (int)center[1] - '0';
-
-      //storing all the coordinates of the scanning zone to targets[]
-      Target targets[9];
-
-      //for the first row
-      for (int i = 0; i < 3; i++)
-      {
-        targets[i].row = centerRow -1;
-        targets[i].col = centerCol -1 +i;
-      }
-
-      //for the second row
-      for (int i = 0; i < 3; i++)
-      {
-        targets[i+3].row = centerRow;
-        targets[i+3].col = centerCol-1+i;
-      }
-
-      //for the third row
-      for(int i = 0; i < 3; i++)
-      {
-        targets[i+6].row = centerRow+1;
-        targets[i+6].col = centerCol-1 +i;
-      }
-
-      //scanning the zone
-      int flag = 0;
-      for (int i = 0; i < 9; i++)
-      {
-
-        //if AI vessel found in the zone
-        if (boards.AI[targets[i].row][targets[i].col] == 'O')
-        {
-          cout<<"***SONAR SWEEP DETECTS ENEMY VESSEL --- PRECISE LOCATION UNCONFIRMED***"<<endl;
-          flag = 1;
-          break;
-        }
-      }
-
-      //if no AI vessel are found in the zone
-      if (flag == 0)
-      {
-        cout<<"***SONAR SWEEP CONFIRMS NO HOSTILE IN SELECTED WATERS***"<<endl;
-      }
-
-      cout<<"Type anything to confirm"<<endl;
-      string sth;
-      cin>>sth;
     }
   }
 }
@@ -1203,7 +1419,7 @@ void advancedweapons(string country)
   printBoard();
 
   cout<<endl<<"To use regular rounds, type \"ap\""<<endl;
-  cout<<"To launch "<<fleet[0].name<<"'s torpedo bomber squadron, type \"bomber\""<<endl;
+  cout<<"To launch "<<fleet[0].name<<"'s torpedo bomber squadron, type \"plane\""<<endl;
   cout<<"To launch "<<fleet[1].name<<"'s barrage, type \"barrage\""<<endl;
   cout<<"To launch "<<fleet[2].name<<"'s torpedo, type \"cruiser\""<<endl;
   cout<<"To launch "<<fleet[3].name<<"'s torpedo, type \"sub\""<<endl;
@@ -1217,7 +1433,7 @@ void advancedweapons(string country)
       generalfire();
       break;
     }
-    else if (mode == "bomber")
+    else if (mode == "plane")
     {
       squadron(country);
       break;
@@ -1310,7 +1526,7 @@ int main() {
       {
         cout<<"***INVALID ORDER, PLEASE RETRY INPUTTING ORDERS AS INSTRUCTED ABOVE***"<<endl;
       }
-        printBoard();
+        tempPrintBoard();
     }
     return 0;
 }
