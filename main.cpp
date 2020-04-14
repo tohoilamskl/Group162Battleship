@@ -30,6 +30,7 @@ struct ships
   string name;
 };
 
+//A structure for storing ship's name and its coordinates
 struct navy
 {
   string name;
@@ -39,14 +40,16 @@ struct navy
   int yposfnl;
 };
 
+navy fleet[5];
+
+//A structure for storing coordinates of a point
 struct Target
 {
   int row;
   int col;
 };
 
-navy fleet[5];
-
+//A structure for storing planes used by each country
 struct plane
 {
   string ijn[4] = {"Type 96 Carrier Attack Bomber", "B6N \"Jill\"", "B5N \"Kate\"", "B7A Ryusei \"Grace\""};
@@ -56,11 +59,12 @@ struct plane
   string hms[3] = {"Swordfish", "Barracuda", "Vildebeest"};
 };
 
-int numofplane[5] = {4,2,1,3,3};
-int plane1, plane2, planeflag;
-
-
 plane bomber;
+
+//Number of planes of each country
+int numofplane[5] = {4,2,1,3,3};
+
+int plane1, plane2, planeflag;
 
 //array for storing the recon planes used by ijn, kms, rm, uss, hms respectively
 string recon[5] = {"C6N Saiun \"Myrt\"","Arado Ar 196","Caproni Ca.316","Supermarine Walrus","OS2U Kingfisher"};
