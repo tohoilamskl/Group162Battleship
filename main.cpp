@@ -639,7 +639,7 @@ bool checkvalidinput(string &target)
   return false;
 }
 //function for allowing the player to input the initial and final coordinates of each ships
-void deployment(char board[][10], navy fleet[])
+void deployment(char board[][10])
 {
   string pos[2] = {};
   pos[0] = "starting";
@@ -712,7 +712,7 @@ void fire(int row, int col)
   //validate the coordinates
   if (row >= 0 && row < 10 && col >= 0 && col < 10)
   {
-    if (boards.AI[row][col] == 'O')
+    if (boards.AI[row][col] == 'O' || boards.AI[row][col] == '@')
     {
 
       //if hit, mark '@'
@@ -1499,7 +1499,7 @@ int main() {
     }
 
     genfleet(uss, kms, hms, rm, ijn, country, fleet);
-    deployment(boards.player, fleet);
+    deployment(boards.player);
     generateRandomBoard(boards.AI);
 
     while (true) {
