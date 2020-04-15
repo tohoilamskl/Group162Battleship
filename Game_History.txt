@@ -1,0 +1,6 @@
+1 38 Alex USGame us 2020-04-13
+0 93 Tom 2ndGame japan 2020-03-13
+1 22 Ken 3rdGame germany 2019-12-17
+1 33 Amy 4thGame gb 2019-09-13
+0 78 Tam 5thGame gb 2019-03-21
+1 33 Omen 6thGame japan 2020-01-34
