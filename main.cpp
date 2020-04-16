@@ -13,6 +13,7 @@
 using namespace std;
 
 const int boardSize = 10;
+const int maxSavedRecords = 50;
 //A structure storing all the boards required
 struct Boards {
     char player[boardSize][boardSize]; //Full board of player (Player see this)
@@ -22,6 +23,28 @@ struct Boards {
 };
 
 Boards boards;
+
+struct LoadGame {
+  int id;
+  string gameName;
+  string playerName;
+  string country;
+  string date;
+  string time;
+  int totalMovesUsed;
+};
+
+LoadGame loadGameData;
+
+struct GameRecords {
+  int won;
+  int totalMoveUsed;
+  string gameName;
+  string playerName;
+  string country;
+  string date;
+  GameRecords* next;
+};
 
 //A structure stroing all the ships of a country
 struct ships
@@ -80,6 +103,47 @@ string torpedo[5] = {"Type 93 torpedo", "21 inch torpedo", "533 mm torpedo", " 2
 
 //number of storage of planes, plane 1 attack quota, plane 2 attack quota, barrage, torpedos of heavy cruiser, torpedos of submarine respectively
 int spweapons[6] = {2,1,1,1,2,2};
+
+string todaysDate(){
+  time_t timeNow = time(0);
+  tm * currentTime = localtime(&timeNow);
+  string temp, fullDate;
+
+  stringstream ys;
+  ys << 1900 + currentTime->tm_year;
+  ys >> temp;
+  fullDate = temp + "-";
+  stringstream ms;
+  ms << 1 + currentTime->tm_mon;
+  ms >> temp;
+  temp = (temp.length() == 1) ? "0" + temp : temp;
+  fullDate += temp + "-";
+  stringstream ds;
+  ds << currentTime->tm_mday;
+  ds >> temp;
+  temp = (temp.length() == 1) ? "0" + temp : temp;
+  fullDate += temp;
+  return fullDate;
+}
+
+string currentTime(){
+  time_t timeNow = time(0);
+  tm * currentT = localtime(&timeNow);
+  string temp, fullTime;
+
+  stringstream hs;
+  hs << currentT->tm_hour;
+  hs >> temp;
+  temp = (temp.length() == 1) ? "0" + temp : temp;
+  fullTime = temp + ":";
+  stringstream ss;
+  ss << currentT->tm_min;
+  ss >> temp;
+  temp = (temp.length() == 1) ? "0" + temp : temp;
+  fullTime += temp;
+  
+  return fullTime;
+}
 
 //function for stroing all the names of all the countries' ships to the given struct
 void naming(ships arr[50],string s)
@@ -339,15 +403,21 @@ string playerInput() {
         validInput = false;
 
         //Prompt input
-        cout << "Please choose a target ('q' to quit): ";
+        cout << "Please choose a target: ";
         getline(cin, target);
 
         if (target.length() <= 2) {
-            //check whether the player input Q or not (TODO: allow player input other command if have)
-            if (target.length() == 1 && (target[0] == 'Q' || target[0] == 'q')) {
+            //check whether the player input Q for quit or S for save or not (TODO: allow player input other command if have)
+            if (target.length() == 1 && (target[0] == 'Q' || target[0] == 'q' || target[0] == 'S' || target[0] == 's')) {
                 validInput = true;
                 return target;
             }
+            //check whether the player input aw for special weapon or not
+            if (target.length() == 2 && (target[0] == 'a' || target[0] == 'A') && (target[1] == 'w' || target[1] == 'W')){
+              validInput = true;
+              return target;
+            }
+
             if (((target[0] >= 'A' && target[0] <= 'J') || (target[0] >= 'a' && target[0] <= 'j')) && target[1] >= '0' && target[1] <= '9') {
                 if (target[0] >= 'a' && target[0] <= 'j') {
                     target[0] = target[0] - 'a' + 'A';
@@ -1422,7 +1492,7 @@ void advancedweapons(string country)
 {
   printBoard();
 
-  cout<<endl<<"To use regular rounds, type \"ap\""<<endl;
+  cout<<endl<<"To change back to regular rounds, type \"ap\""<<endl;
   cout<<"To launch "<<fleet[0].name<<"'s torpedo bomber squadron, type \"plane\""<<endl;
   cout<<"To launch "<<fleet[1].name<<"'s barrage, type \"barrage\""<<endl;
   cout<<"To launch "<<fleet[2].name<<"'s torpedo, type \"cruiser\""<<endl;
@@ -1468,69 +1538,516 @@ void advancedweapons(string country)
   }
 }
 
-int main() {
-    ships uss[50], kms[50], hms[50], rm[50], ijn[50];
+void generateID(){
+  int existedID[maxSavedRecords], count = 0;
+  bool validID = true;
+  string line, firstWord, id;
 
-    naming(uss,"USS");
-    naming(kms,"KMS");
-    naming(hms,"HMS");
-    naming(rm,"RM");
-    naming(ijn,"IJN");
+  ifstream fin;
+  fin.open("Unfinished_Game.txt");
+  if(fin.fail()){
+    cout << "Failed opening file!" << endl;
+    exit(1);
+  }
 
-    srand(time(NULL));
+  while(getline(fin, line)){
+    istringstream iss(line);
+    iss >> firstWord  >> id;
+    if(firstWord == "loadGameData:"){
+      existedID[count] = stoi(id);
+      count++;
+    }
+  }
 
-    int flag = 0;
-    printBoard();
-    cout<<"To play as the United States, type \"us\""<<endl;
-    cout<<"To play as Great Britain, type \"gb\""<<endl;
-    cout<<"To play as German Reich, type \"germany\""<<endl;
-    cout<<"To play as the Kingdom of Italy, type \"italy\""<<endl;
-    cout<<"To play as the Empire of Great Japan, type \"japan\""<<endl<<endl;
-    string country;
-
-    while (true)
-    {
-      getline(cin,country);
-      if (!(country == "us" || country == "gb" || country == "germany" || country == "italy" || country == "japan"))
-      {
-        cout<<"***Invalid country name inputted! Please enter the country name according to the above instructions***"<<endl;
-        continue;
+  for(int i = 0; i < maxSavedRecords; i++){//TODO when have time: notify when there are 50 records in the Unfinished_Game.txt (have to delete a record first)
+    validID = true;
+    for(int j = 0; j < count; j++){
+      if (i == existedID[j]){
+        validID = false;
       }
-      else
-      {
+    }
+    if (validID){
+      loadGameData.id = i;
+      break;
+    }
+  }
+  fin.close();
+}
+
+void saveGame(){
+  
+  cout << "Please enter your name for saving: ";
+  getline(cin, loadGameData.playerName);
+  cout << "Please name your game: ";
+  getline(cin, loadGameData.gameName);
+  generateID();
+  
+  ofstream fout;
+  fout.open("Unfinished_Game.txt", ios::app);
+  if(fout.fail()){
+    cout << "Failed opening file!\n";
+    exit(1);
+  }
+  fout << "loadGameData: " << loadGameData.id << " " << loadGameData.playerName << " " << loadGameData.gameName << " " << loadGameData.country << " " << loadGameData.totalMovesUsed << " ";
+  fout << todaysDate() << " ";
+  fout << currentTime() << endl;
+
+  for(int i = 0; i < boardSize; i++){
+    for (int j = 0; j < boardSize; j++){
+      fout << boards.player[i][j];
+    }
+  }
+  fout << endl;
+  for(int i = 0; i < boardSize; i++){
+    for (int j = 0; j < boardSize; j++){
+      fout << boards.AI[i][j];
+    }
+  }
+  fout << endl;
+  for(int i = 0; i < boardSize; i++){
+    for (int j = 0; j < boardSize; j++){
+      fout << boards.playerViewAIBoard[i][j];
+    }
+  }
+  fout << endl;
+  for(int i = 0; i < boardSize; i++){
+    for (int j = 0; j < boardSize; j++){
+      fout << boards.AIViewPlayerBoard[i][j];
+    }
+  }
+  fout << endl;
+  fout << endl;
+
+  //TODO: safe the array into the file.
+
+  fout.close();
+}
+
+void saveRecord(bool playerWon){
+  ofstream fout;
+  fout.open("Game_History.txt");
+  if(fout.fail(), ios::app){
+    cout << "Failed opening file!" << endl;
+    exit(1);
+  }
+  //if player won, then game_history file save "1"
+  fout << ((playerWon) ? "1" : "0") << " " << loadGameData.totalMovesUsed << " " << loadGameData.playerName << " " << loadGameData.gameName << " " << loadGameData.country << " " << todaysDate() << endl;
+
+  fout.close();
+}
+
+bool gameFinished(bool &playerWon){
+  bool gameFin = true;
+  for(int i = 0; i < boardSize; i++){
+    for (int j = 0; j < boardSize; j++){
+      if(boards.player[i][j] == 'O'){
+        gameFin = false;
         break;
       }
     }
-
-    genfleet(uss, kms, hms, rm, ijn, country, fleet);
-    deployment(boards.player);
-    generateRandomBoard(boards.AI);
-
-    while (true) {
-      cout<<"AWAITING ORDER"<<endl;
-      cout<<"To fire regualr rounds, type \"ap\""<<endl;
-      cout<<"To use special weapons, type \"aw\""<<endl;
-      cout<<"To quit the game, type \"q\""<<endl;
-
-      string mode;
-      getline(cin,mode);
-      if (mode == "ap")
-      {
-        generalfire();
-      }
-      else if (mode == "aw")
-      {
-        advancedweapons(country);
-      }
-      else if (mode == "Q" || mode == "q")
-      {
-          break;
-      }
-      else
-      {
-        cout<<"***INVALID ORDER, PLEASE RETRY INPUTTING ORDERS AS INSTRUCTED ABOVE***"<<endl;
-      }
-        tempPrintBoard();
+    if(! gameFin){
+      break;
     }
-    return 0;
+  }
+  if(gameFin){
+    playerWon = true;
+    return true;
+  }
+
+  gameFin = true;
+  for(int i = 0; i < boardSize; i++){
+    for (int j = 0; j < boardSize; j++){
+      if(boards.AI[i][j] == 'O'){
+        gameFin = false;
+        break;
+      }
+    }
+    if(! gameFin){
+      break;
+    }
+  }
+  if(gameFin){
+    playerWon = false;
+    return true;
+  }
+
+  return false;
+}
+
+//function for actual game process
+void playGame(string country){
+  string input;
+  bool playerWon, gameOver = false;
+  while (! gameOver) {
+    tempPrintBoard();
+    
+    cout<< endl <<"AWAITING ORDER!!!"<<endl;
+    cout<<"To fire regualr rounds, type the coordinate (row, column)"<<endl;
+    cout<<"To use special weapons, type \"aw\""<<endl;
+    cout<<"To save the game, type \"s\""<<endl;
+    cout<<"To quit the game, type \"q\""<<endl;
+    cout << endl;
+
+
+    input = playerInput();
+    if (input == "aw")
+    {
+      advancedweapons(country);
+    }
+    else if (input == "Q" || input == "q")
+    {
+        //ask user if he/she wants to save the file
+        cout << "Are you sure you want to quit the game without saving? (\'y\' to quit, \'n\' to save): ";
+        getline(cin, input);
+        while (input.length() != 1 || (input[0] != 'Y' && input[0] != 'y' && input[0] != 'N' && input[0] != 'n')){
+          cout << "Invalid input! (\'y\' to quit, \'n\' to save)";
+          cout << "Your choice: ";
+          getline(cin, input);
+        }
+        if(input == "N" || input == "n"){
+          saveGame();
+        }
+        break;
+    }
+    else if (input == "S" || input == "s"){
+      saveGame();
+      break;
+    }
+    else{
+      fire((int)input[0] - 'A', (int)input[1] - '0');
+    }
+    loadGameData.totalMovesUsed++;
+    gameOver = gameFinished(playerWon);
+  }
+  if(gameOver){
+    saveRecord(playerWon);
+  }
+}
+
+void readFromFileToProgram(string inputLine, char board[][boardSize]){
+  for(int i = 0; i < boardSize; i++){
+    for(int j = 0; j < boardSize; j++){
+      board[i][j] = inputLine[i*boardSize+j];
+    }
+  }
+}
+
+void loadGame(){
+  string line, firstWord, secondWord, existingID[maxSavedRecords], input, temp;
+  int selectedGame, count = 0, lineRead;
+  bool gameExist = false, validEntry = false, validFormat, startReadingLine = false, quit = false;
+  
+  system("CLS");
+  cout << "All existing game:\n";
+  cout << "ID " << setw(13) << "Player Name" << setw(13) << "Game Name" << setw(10) << "Country" << setw(5) << "Move" << setw(13) << "Date" << setw(8) << "Time" << endl;
+  cout << "--- ------------ ------------ --------- ---- ------------ -------\n";
+
+  ifstream fin;
+  fin.open("Unfinished_Game.txt");
+  if(fin.fail()){
+    cout << "Failed opening file!";
+    exit(1);
+  }
+  while(getline(fin, line)){
+    istringstream iss(line);
+    iss >> firstWord;
+    if(firstWord == "loadGameData:"){
+      gameExist = true;
+      iss >> existingID[count] >> loadGameData.playerName >> loadGameData.gameName >> loadGameData.country >> temp >> loadGameData.date >> loadGameData.time;
+      cout << setw(2) << existingID[count] << ": " << setw(12) << loadGameData.playerName << " " << setw(12) << loadGameData.gameName << " " << setw(9) << loadGameData.country << " " << setw(4) << temp << " " << setw(12) << loadGameData.date << " " << setw(7) << loadGameData.time << endl;
+      count++;
+    }
+  }
+  fin.close();
+
+  if (gameExist){
+    while (! validEntry){
+      validFormat = true;
+      cout << endl << "Select a game to load ('Q' to quit): ";
+      getline(cin, input);
+      if (input == "Q" || input == "q"){
+        quit = true;
+        validEntry = true;
+        break;
+      }
+      for(int i = 0; input[i] != '\0'; i++){
+        if (input[i]< '0' || input[i] > '9'){
+          validFormat = false;
+          break;
+        }
+      }
+      if (validFormat){
+        selectedGame = stoi(input);
+        for(int i = 0; i < maxSavedRecords && ! existingID[i].empty(); i++){
+          if (selectedGame == stoi(existingID[i])){
+            validEntry = true;
+            break;
+          }
+        }
+        if(!validEntry){
+          cout << "Invalid input! Please select an existing game!" << endl;
+        }
+      }
+      else {
+        cout << "Invalid input! Please type an integer or \'Q\' to quit!" << endl;
+      }
+
+    }
+    
+    if(! quit){
+      ifstream fin;
+      fin.open("Unfinished_Game.txt");
+      if(fin.fail()){
+        cout << "Failed opening file!";
+        exit(1);
+      }
+      while(getline(fin, line)){
+        
+        if(!startReadingLine){
+          istringstream iss(line);
+          iss >> firstWord;
+          if(firstWord == "loadGameData:"){
+            lineRead = 0;
+            iss >> secondWord >> loadGameData.playerName >> loadGameData.gameName >> loadGameData.country >> temp;
+            loadGameData.id = stoi(secondWord);
+            loadGameData.totalMovesUsed = stoi(temp);
+            cout << loadGameData.id << selectedGame << endl;
+            if(loadGameData.id == selectedGame){
+              startReadingLine = true;
+              continue;
+            }
+          }
+        }
+        if(startReadingLine){
+          switch(lineRead){
+            case 0:
+              readFromFileToProgram(line, boards.player);
+              break;
+            case 1:
+              readFromFileToProgram(line, boards.AI);
+              break;
+            case 2:
+              readFromFileToProgram(line, boards.playerViewAIBoard);
+              break;
+            case 3:
+              readFromFileToProgram(line, boards.AIViewPlayerBoard);
+              break;
+          }
+          lineRead++;
+        }
+        if (lineRead == 4){
+          break;
+        }
+      }
+      fin.close();
+      ships uss[50], kms[50], hms[50], rm[50], ijn[50];
+      cout << loadGameData.country << endl;
+      naming(uss,"USS");
+      naming(kms,"KMS");
+      naming(hms,"HMS");
+      naming(rm,"RM");
+      naming(ijn,"IJN");
+      genfleet(uss, kms, hms, rm, ijn, loadGameData.country, fleet);
+      playGame(loadGameData.country);
+    }
+  }
+  else{
+    cout << endl << "There is no existing game!" << endl;
+  }
+}
+
+//function to generate a new Game
+void newGame() {
+  ships uss[50], kms[50], hms[50], rm[50], ijn[50];
+
+  naming(uss,"USS");
+  naming(kms,"KMS");
+  naming(hms,"HMS");
+  naming(rm,"RM");
+  naming(ijn,"IJN");
+
+  srand(time(NULL));
+
+  system("CLS");
+  int flag = 0;
+  cout<<"To play as the United States, type \"us\""<<endl;
+  cout<<"To play as Great Britain, type \"gb\""<<endl;
+  cout<<"To play as German Reich, type \"germany\""<<endl;
+  cout<<"To play as the Kingdom of Italy, type \"italy\""<<endl;
+  cout<<"To play as the Empire of Great Japan, type \"japan\""<<endl << endl;
+  string country;
+
+  while (true)
+  {
+    cout << "Choose a country: ";
+    getline(cin,country);
+    if (!(country == "us" || country == "gb" || country == "germany" || country == "italy" || country == "japan"))
+    {
+      cout<<"***Invalid country name inputted! Please enter the country name according to the above instructions***"<<endl;
+      continue;
+    }
+    else
+    {
+      break;
+    }
+  }
+  loadGameData.country = country;
+  loadGameData.totalMovesUsed = 0;
+
+  genfleet(uss, kms, hms, rm, ijn, country, fleet);
+  deployment(boards.player);
+  //generateRandomBoard(boards.player);
+  generateRandomBoard(boards.AI);
+
+  playGame(country);
+}
+
+void printAllRecords(GameRecords* &head){
+  GameRecords* current = head;
+
+  system("CLS");
+
+  cout << "Rank  Player Name    Game Name   Country Result Move         Date" << endl;
+  cout << "---- ------------ ------------ --------- ------ ---- ------------" << endl;
+
+  for(int i = 1; current!=NULL; i++){
+    cout << setw(4) << i << " " << setw(12) << current->playerName << " " << setw(12) << current->gameName << " " << setw(9) << current->country << " " << setw(6) << ((current->won) ? "Won" : "Lose") << " " << setw(4) << current->totalMoveUsed << " " << setw(12) << current->date << endl;
+    current = current->next;
+  }
+  current = new GameRecords;
+  delete current;
+}
+
+void newGameRecord(GameRecords* &head, string line, int size){
+  int wonInt, movesInt;
+  string won, move, gameName, playerName, date, country;
+  bool newRecordInserted = false;
+
+
+  cout << line << endl;
+  istringstream iss(line);
+  iss >> won >> move >> playerName >> gameName >> country >> date;
+  wonInt = stoi(won);
+  movesInt = stoi(move);
+  
+  GameRecords* temp = new GameRecords;
+  GameRecords* current = head;
+  GameRecords* data = new GameRecords;
+  data->won = wonInt;
+  data->totalMoveUsed = movesInt;
+  data->playerName = playerName;
+  data->gameName = gameName;
+  data->country = country;
+  data->date = date;
+  data->next = NULL;
+
+  if(head == NULL || (wonInt > head->won || (wonInt == head->won && movesInt <= head->totalMoveUsed))){
+    temp = head;
+    data->next = temp;
+    head = data;
+    newRecordInserted = true;
+  }
+  else{
+    while (current->next != NULL){    
+      if (wonInt > current->next->won || (wonInt == current->next->won && movesInt <= current->next->totalMoveUsed)){
+        data->next = current->next;
+        current->next = data;
+        
+        newRecordInserted = true;
+        break;
+      }
+      current = current->next;
+    }
+  }
+  if(!newRecordInserted){
+    current->next = data;
+  }
+  temp = new GameRecords;
+  current = new GameRecords;
+  data = new GameRecords;
+  delete temp;
+  delete current;
+  delete data;
+}
+
+void showGameRecord(){
+  int size = 0;
+  string input, line;
+  GameRecords* head = NULL;
+
+  ifstream fin;
+  fin.open("Game_History.txt");
+  if(fin.fail()){
+    cout << "Failed opening file!" << endl;
+    exit(1);
+  }
+  while(getline(fin, line)){
+    newGameRecord(head, line, size);
+  }
+  fin.close();
+
+  printAllRecords(head);
+
+  cout << endl << "Q to quit: ";
+  getline(cin, input);
+
+}
+
+//Main Menu
+int mainMenu(){
+  system("CLS");
+  string choice;
+
+  //main menu
+  cout << "********************************************" << endl;
+  cout << "***** Welcome to Battleship Remastered *****" << endl;
+  cout << "********************************************" << endl;
+  cout << "1). New Game" << endl;
+  cout << "2). Load Existing Game" << endl;
+  cout << "3). Show Game History" << endl << endl;
+  cout << "Your choice (\'q\' to quit): ";
+  getline(cin, choice);
+
+  //input validation
+  while (!(choice.length() == 1 && ((choice[0] >= '1' && choice[0] <= '3') || choice[0] == 'q' || choice[0] == 'Q'))){
+    cout << "Invalid input! Please input (1-3) or \'Q\' for quit!" << endl;
+    getline(cin, choice);
+  }
+  return (choice[0] >= '1' && choice[0] <= '3') ? (int) (choice[0] - '0') : 0;
+
+}
+
+void wipeBoard(char board[][boardSize]){
+  for(int i = 0; i < boardSize; i++){
+    for(int j = 0; j < boardSize; j++){
+      board[i][j] = (char) 0;
+    }
+  }
+}
+
+int main(){
+  int choice;
+  choice = mainMenu();
+  //loop whil player didn't enter 'q' or 'Q' for quit
+  while(choice != 0){
+    wipeBoard(boards.player);
+    wipeBoard(boards.AI);
+    wipeBoard(boards.playerViewAIBoard);
+    wipeBoard(boards.AIViewPlayerBoard);
+    switch (choice){
+      case 1:
+        newGame();
+        break;
+      case 2:
+        loadGame();
+        break;
+      case 3:
+        showGameRecord();
+        break;
+    }
+    
+    choice = mainMenu();
+  }
+
+  return 0;
 }
