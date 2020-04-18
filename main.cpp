@@ -12,8 +12,9 @@
 
 using namespace std;
 
-const int boardSize = 10;
-const int maxSavedRecords = 50;
+const int boardSize = 10;  //maximum size of the board
+const int maxSavedRecords = 50; // maximum size allowed to store game records in "Unfinished_Game.txt"
+
 //A structure storing all the boards required
 struct Boards {
     char player[boardSize][boardSize]; //Full board of player (Player see this)
@@ -24,6 +25,7 @@ struct Boards {
 
 Boards boards;
 
+//structure for storing game data other than boards (ex. game name, moves...)
 struct LoadGame {
   int id;
   string gameName;
@@ -36,6 +38,7 @@ struct LoadGame {
 
 LoadGame loadGameData;
 
+//structure for storing and sorting all game records (for dynamic array)
 struct GameRecords {
   int won;
   int totalMoveUsed;
@@ -100,6 +103,7 @@ string torpedo[5] = {"Type 93 torpedo", "21 inch torpedo", "533 mm torpedo", " 2
 //number of storage of planes, plane 1 attack quota, plane 2 attack quota, barrage, torpedos of heavy cruiser, torpedos of submarine respectively
 int spweapons[6] = {2,1,1,1,2,2};
 
+//function to generate today's date, return the date
 string todaysDate(){
   time_t timeNow = time(0);
   tm * currentTime = localtime(&timeNow);
@@ -122,6 +126,7 @@ string todaysDate(){
   return fullDate;
 }
 
+//function to generate current time, return the time
 string currentTime(){
   time_t timeNow = time(0);
   tm * currentT = localtime(&timeNow);
@@ -1534,6 +1539,7 @@ void advancedweapons(string country)
   }
 }
 
+//function to randomly generate an id that has not been exist yet and directly store it into the file
 void generateID(){
   int existedID[maxSavedRecords], count = 0;
   bool validID = true;
@@ -1570,8 +1576,9 @@ void generateID(){
   fin.close();
 }
 
+//save game into "Unfinished_Game.txt" for future
 void saveGame(){
-  
+  //input game name and player name
   cout << "Please enter your name for saving: ";
   getline(cin, loadGameData.playerName);
   cout << "Please name your game: ";
@@ -1584,10 +1591,14 @@ void saveGame(){
     cout << "Failed opening file!\n";
     exit(1);
   }
-  fout << "loadGameData: " << loadGameData.id << " " << loadGameData.playerName << " " << loadGameData.gameName << " " << loadGameData.country << " " << loadGameData.totalMovesUsed << " ";
+
+  //store first line (recording data other than boards)
+  fout << "loadGameData: " << loadGameData.id << " " << loadGameData.playerName << " " << loadGameData.gameName << " ";
+  fout << loadGameData.country << " " << loadGameData.totalMovesUsed << " ";
   fout << todaysDate() << " ";
   fout << currentTime() << endl;
 
+  //store all four boards into the file
   for(int i = 0; i < boardSize; i++){
     for (int j = 0; j < boardSize; j++){
       fout << boards.player[i][j];
@@ -1614,16 +1625,15 @@ void saveGame(){
   fout << endl;
   fout << endl;
 
-  //TODO: safe the array into the file.
-
   fout.close();
 }
 
+//when game finished, same record into "Game_History.txt"
 void saveRecord(bool playerWon){
   ofstream fout;
-  fout.open("Game_History.txt");
-  if(fout.fail(), ios::app){
-    cout << "Failed opening file!" << endl;
+  fout.open("Game_History.txt", ios::app);
+  if(fout.fail()){
+    cout << "Failed opening file! this???" << endl;
     exit(1);
   }
   //if player won, then game_history file save "1"
@@ -1632,8 +1642,11 @@ void saveRecord(bool playerWon){
   fout.close();
 }
 
+//check if game finished, return true if finished, will also check whether player won or lose
 bool gameFinished(bool &playerWon){
   bool gameFin = true;
+
+  //check if player's board is empty or not
   for(int i = 0; i < boardSize; i++){
     for (int j = 0; j < boardSize; j++){
       if(boards.player[i][j] == 'O'){
@@ -1646,10 +1659,11 @@ bool gameFinished(bool &playerWon){
     }
   }
   if(gameFin){
-    playerWon = true;
+    playerWon = false;
     return true;
   }
 
+  //check if AI's board is empty or not
   gameFin = true;
   for(int i = 0; i < boardSize; i++){
     for (int j = 0; j < boardSize; j++){
@@ -1663,7 +1677,7 @@ bool gameFinished(bool &playerWon){
     }
   }
   if(gameFin){
-    playerWon = false;
+    playerWon = true;
     return true;
   }
 
@@ -1686,11 +1700,13 @@ void playGame(string country){
 
 
     input = playerInput();
-    if (input == "aw")
+
+    //different actions based on which type of player input
+    if (input == "aw")   //advanced weapons
     {
       advancedweapons(country);
     }
-    else if (input == "Q" || input == "q")
+    else if (input == "Q" || input == "q")   //quit the game
     {
         //ask user if he/she wants to save the file
         cout << "Are you sure you want to quit the game without saving? (\'y\' to quit, \'n\' to save): ";
@@ -1705,21 +1721,24 @@ void playGame(string country){
         }
         break;
     }
-    else if (input == "S" || input == "s"){
+    else if (input == "S" || input == "s"){   //save the game
       saveGame();
       break;
     }
-    else{
+    else{    //normal fire
       fire((int)input[0] - 'A', (int)input[1] - '0');
     }
     loadGameData.totalMovesUsed++;
     gameOver = gameFinished(playerWon);
   }
+
+  //when game is over, save game records
   if(gameOver){
     saveRecord(playerWon);
   }
 }
 
+//function to read a line of "Game_History.txt" file
 void readFromFileToProgram(string inputLine, char board[][boardSize]){
   for(int i = 0; i < boardSize; i++){
     for(int j = 0; j < boardSize; j++){
@@ -1728,14 +1747,16 @@ void readFromFileToProgram(string inputLine, char board[][boardSize]){
   }
 }
 
-void loadGame(){
-  string line, firstWord, secondWord, existingID[maxSavedRecords], input, temp;
-  int selectedGame, count = 0, lineRead;
-  bool gameExist = false, validEntry = false, validFormat, startReadingLine = false, quit = false;
+//function to display all existing unfinished games (return whether unfinished games exist or not)
+bool displayExistingGames(string existingID[]){
+  string line, firstWord, temp;
+  int count = 0;
+  bool gameExist = false;
   
   system("CLS");
   cout << "All existing game:\n";
-  cout << "ID " << setw(13) << "Player Name" << setw(13) << "Game Name" << setw(10) << "Country" << setw(5) << "Move" << setw(13) << "Date" << setw(8) << "Time" << endl;
+  cout << "ID " << setw(13) << "Player Name" << setw(13) << "Game Name" << setw(10) << "Country";
+  cout << setw(5) << "Move" << setw(13) << "Date" << setw(8) << "Time" << endl;
   cout << "--- ------------ ------------ --------- ---- ------------ -------\n";
 
   ifstream fin;
@@ -1744,59 +1765,86 @@ void loadGame(){
     cout << "Failed opening file!";
     exit(1);
   }
+  //for every heading line in the file, output its information
   while(getline(fin, line)){
     istringstream iss(line);
     iss >> firstWord;
     if(firstWord == "loadGameData:"){
       gameExist = true;
       iss >> existingID[count] >> loadGameData.playerName >> loadGameData.gameName >> loadGameData.country >> temp >> loadGameData.date >> loadGameData.time;
-      cout << setw(2) << existingID[count] << ": " << setw(12) << loadGameData.playerName << " " << setw(12) << loadGameData.gameName << " " << setw(9) << loadGameData.country << " " << setw(4) << temp << " " << setw(12) << loadGameData.date << " " << setw(7) << loadGameData.time << endl;
+      cout << setw(2) << existingID[count] << ": " << setw(12) << loadGameData.playerName << " ";
+      cout << setw(12) << loadGameData.gameName << " " << setw(9) << loadGameData.country << " ";
+      cout << setw(4) << temp << " " << setw(12) << loadGameData.date << " " << setw(7) << loadGameData.time << endl;
       count++;
     }
   }
   fin.close();
 
-  if (gameExist){
-    while (! validEntry){
-      validFormat = true;
-      cout << endl << "Select a game to load ('Q' to quit): ";
-      getline(cin, input);
-      if (input == "Q" || input == "q"){
-        quit = true;
-        validEntry = true;
+  return gameExist;
+}
+
+//function to allow player to select an existing game to load (with input validation), return ID of existing game or -1 if quit
+int selectExistingGame(string existingID[]){
+  bool validFormat = true;
+  int selectedGame;
+  string input;
+
+  while (true){
+    validFormat = true;
+    cout << endl << "Select a game to load ('Q' to quit): ";
+    getline(cin, input);
+
+    //if player wants to quit
+    if (input == "Q" || input == "q"){
+      return -1;
+    }
+
+    //check if format is correct or not
+    for(int i = 0; input[i] != '\0'; i++){
+      if (input[i]< '0' || input[i] > '9'){
+        validFormat = false;
         break;
       }
-      for(int i = 0; input[i] != '\0'; i++){
-        if (input[i]< '0' || input[i] > '9'){
-          validFormat = false;
-          break;
-        }
-      }
-      if (validFormat){
-        selectedGame = stoi(input);
-        for(int i = 0; i < maxSavedRecords && ! existingID[i].empty(); i++){
-          if (selectedGame == stoi(existingID[i])){
-            validEntry = true;
-            break;
-          }
-        }
-        if(!validEntry){
-          cout << "Invalid input! Please select an existing game!" << endl;
-        }
-      }
-      else {
-        cout << "Invalid input! Please type an integer or \'Q\' to quit!" << endl;
-      }
-
     }
+
+    if (validFormat){
+      selectedGame = stoi(input);
+
+      //check if input is valid or not, if yes, then return the selected existing game
+      for(int i = 0; i < maxSavedRecords && ! existingID[i].empty(); i++){
+        if (selectedGame == stoi(existingID[i])){
+          return selectedGame;
+        }
+      }
+      cout << "Invalid input! Please select an existing game!" << endl;
+    }
+    else {
+      cout << "Invalid input! Please type an integer or \'Q\' to quit!" << endl;
+    }
+  }
+} 
+
+//function to load the existing game from the file to the program and start playing it
+void loadGame(){
+  string line, firstWord, secondWord, existingID[maxSavedRecords], temp;
+  ships uss[50], kms[50], hms[50], rm[50], ijn[50];
+  int selectedGame, lineRead;
+  bool gameExist, startReadingLine = false;
+  
+  gameExist = displayExistingGames(existingID);
+
+  if (gameExist){
+    selectedGame = selectExistingGame(existingID);
     
-    if(! quit){
+    if(selectedGame != -1){
       ifstream fin;
       fin.open("Unfinished_Game.txt");
       if(fin.fail()){
         cout << "Failed opening file!";
         exit(1);
       }
+
+      //store the game data in the film into our program
       while(getline(fin, line)){
         
         if(!startReadingLine){
@@ -1836,8 +1884,9 @@ void loadGame(){
         }
       }
       fin.close();
-      ships uss[50], kms[50], hms[50], rm[50], ijn[50];
-      cout << loadGameData.country << endl;
+
+
+      //start the game
       naming(uss,"USS");
       naming(kms,"KMS");
       naming(hms,"HMS");
@@ -1898,6 +1947,7 @@ void newGame() {
   playGame(country);
 }
 
+//function to print all game records history
 void printAllRecords(GameRecords* &head){
   GameRecords* current = head;
 
@@ -1907,19 +1957,22 @@ void printAllRecords(GameRecords* &head){
   cout << "---- ------------ ------------ --------- ------ ---- ------------" << endl;
 
   for(int i = 1; current!=NULL; i++){
-    cout << setw(4) << i << " " << setw(12) << current->playerName << " " << setw(12) << current->gameName << " " << setw(9) << current->country << " " << setw(6) << ((current->won) ? "Won" : "Lose") << " " << setw(4) << current->totalMoveUsed << " " << setw(12) << current->date << endl;
+    cout << setw(4) << i << " " << setw(12) << current->playerName << " " << setw(12) << current->gameName << " ";
+    cout << setw(9) << current->country << " " << setw(6) << ((current->won) ? "Won" : "Lose") << " ";
+    cout << setw(4) << current->totalMoveUsed << " " << setw(12) << current->date << endl;
     current = current->next;
   }
   current = new GameRecords;
   delete current;
 }
 
+//function to sort and store the game history records in order of (win, then lose), then (ascending order of amount of moves used)
 void newGameRecord(GameRecords* &head, string line, int size){
   int wonInt, movesInt;
   string won, move, gameName, playerName, date, country;
   bool newRecordInserted = false;
 
-
+  //store all information of this record into a temporary dynamic array of data
   cout << line << endl;
   istringstream iss(line);
   iss >> won >> move >> playerName >> gameName >> country >> date;
@@ -1937,6 +1990,7 @@ void newGameRecord(GameRecords* &head, string line, int size){
   data->date = date;
   data->next = NULL;
 
+  //store records into the dynamic array in a specific order
   if(head == NULL || (wonInt > head->won || (wonInt == head->won && movesInt <= head->totalMoveUsed))){
     temp = head;
     data->next = temp;
@@ -1958,6 +2012,7 @@ void newGameRecord(GameRecords* &head, string line, int size){
   if(!newRecordInserted){
     current->next = data;
   }
+
   temp = new GameRecords;
   current = new GameRecords;
   data = new GameRecords;
@@ -1966,6 +2021,7 @@ void newGameRecord(GameRecords* &head, string line, int size){
   delete data;
 }
 
+//function to access file "Game_History.txt", extracting all game history records
 void showGameRecord(){
   int size = 0;
   string input, line;
@@ -1977,6 +2033,8 @@ void showGameRecord(){
     cout << "Failed opening file!" << endl;
     exit(1);
   }
+  
+  //loop until all records in the file have been optained, and stored in a dynamic array structure
   while(getline(fin, line)){
     newGameRecord(head, line, size);
   }
@@ -1989,12 +2047,12 @@ void showGameRecord(){
 
 }
 
-//Main Menu
+//function that prints the Main Menu Screen (allow player to select choices)
 int mainMenu(){
   system("CLS");
   string choice;
 
-  //main menu
+  //main menu screen
   cout << "********************************************" << endl;
   cout << "***** Welcome to Battleship Remastered *****" << endl;
   cout << "********************************************" << endl;
@@ -2013,6 +2071,7 @@ int mainMenu(){
 
 }
 
+//function to wipe board, clearing all the data in the board
 void wipeBoard(char board[][boardSize]){
   for(int i = 0; i < boardSize; i++){
     for(int j = 0; j < boardSize; j++){
@@ -2021,6 +2080,7 @@ void wipeBoard(char board[][boardSize]){
   }
 }
 
+//main function
 int main(){
   int choice;
   choice = mainMenu();
@@ -2031,12 +2091,15 @@ int main(){
     wipeBoard(boards.playerViewAIBoard);
     wipeBoard(boards.AIViewPlayerBoard);
     switch (choice){
+      //create new game (generating a new board)
       case 1:
         newGame();
         break;
+      //load game (extracting an existing game from the file)
       case 2:
         loadGame();
         break;
+      //show all game history
       case 3:
         showGameRecord();
         break;
