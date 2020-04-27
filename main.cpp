@@ -2638,11 +2638,7 @@ bool displayExistingGames(string existingID[]){
   string line, firstWord, temp;
   int count = 0;
   bool gameExist = false;
-<<<<<<< HEAD
-  
-=======
 
->>>>>>> ww2theme
   system("CLS");
   cout << "All existing game:\n";
   cout << "ID " << setw(13) << "Player Name" << setw(13) << "Game Name" << setw(10) << "Country";
@@ -2707,21 +2703,12 @@ int selectExistingGame(string existingID[]){
         }
       }
       cout << "Invalid input! Please select an existing game!" << endl;
-<<<<<<< HEAD
-    }
-    else {
-      cout << "Invalid input! Please type an integer or \'Q\' to quit!" << endl;
-    }
-  }
-} 
-=======
     }
     else {
       cout << "Invalid input! Please type an integer or \'Q\' to quit!" << endl;
     }
   }
 }
->>>>>>> ww2theme
 
 //function to load the existing game from the file to the program and start playing it
 void loadGame(){
@@ -2729,20 +2716,12 @@ void loadGame(){
   ships uss[50], kms[50], hms[50], rm[50], ijn[50];
   int selectedGame, lineRead;
   bool gameExist, startReadingLine = false;
-<<<<<<< HEAD
-  
-=======
 
->>>>>>> ww2theme
   gameExist = displayExistingGames(existingID);
 
   if (gameExist){
     selectedGame = selectExistingGame(existingID);
-<<<<<<< HEAD
-    
-=======
 
->>>>>>> ww2theme
     if(selectedGame != -1){
       ifstream fin;
       fin.open("Unfinished_Game.txt");
@@ -2938,11 +2917,7 @@ void showGameRecord(){
     cout << "Failed opening file!" << endl;
     exit(1);
   }
-<<<<<<< HEAD
-  
-=======
 
->>>>>>> ww2theme
   //loop until all records in the file have been optained, and stored in a dynamic array structure
   while(getline(fin, line)){
     newGameRecord(head, line, size);
@@ -2962,8 +2937,6 @@ int mainMenu(){
   string choice;
 
   //main menu screen
-<<<<<<< HEAD
-=======
   ifstream fin;
   fin.open("ship.txt");
   string x;
@@ -2992,7 +2965,6 @@ int mainMenu(){
   }
   fin.close();
   cout<<endl;
->>>>>>> ww2theme
   cout << "********************************************" << endl;
   cout << "***** Welcome to Battleship Remastered *****" << endl;
   cout << "********************************************" << endl;
