@@ -12,8 +12,9 @@
 
 using namespace std;
 
-const int boardSize = 10;
-const int maxSavedRecords = 50;
+const int boardSize = 10;  //maximum size of the board
+const int maxSavedRecords = 50; // maximum size allowed to store game records in "Unfinished_Game.txt"
+
 //A structure storing all the boards required
 struct Boards {
     char player[boardSize][boardSize]; //Full board of player (Player see this)
@@ -24,6 +25,7 @@ struct Boards {
 
 Boards boards;
 
+//structure for storing game data other than boards (ex. game name, moves...)
 struct LoadGame {
   int id;
   string gameName;
@@ -36,6 +38,7 @@ struct LoadGame {
 
 LoadGame loadGameData;
 
+//structure for storing and sorting all game records (for dynamic array)
 struct GameRecords {
   int won;
   int totalMoveUsed;
@@ -53,7 +56,7 @@ struct ships
   string name;
 };
 
-//A structure for storing ship's name and its coordinates
+//A structure for storing a ship's name and its position
 struct navy
 {
   string name;
@@ -63,16 +66,16 @@ struct navy
   int yposfnl;
 };
 
-navy fleet[5];
+navy fleet[10];
 
-//A structure for storing coordinates of a point
+//A structure for storing a point's coordinates
 struct Target
 {
   int row;
   int col;
 };
 
-//A structure for storing planes used by each country
+//A structure for storing all the planes to be used
 struct plane
 {
   string ijn[4] = {"Type 96 Carrier Attack Bomber", "B6N \"Jill\"", "B5N \"Kate\"", "B7A Ryusei \"Grace\""};
@@ -84,10 +87,13 @@ struct plane
 
 plane bomber;
 
-//Number of planes of each country
 int numofplane[5] = {4,2,1,3,3};
-
-int plane1, plane2, planeflag;
+int plane1, plane2, planeflag, hitflag,subdirflag2, currenttarget = -1, targetchecked = 0;
+char subdir[2] = {'h','v'};
+int hitzone[9] = {-1,-1,-1,-1,-1,-1,-1,-1,-1};
+int hitcache[5] = {-1,-1,-1,-1,-1};
+int subdirh[2][2] = {{11, 18}, {81, 88}};
+int subdirv[2][2] = {{1, 91}, {8, 98}};
 
 //array for storing the recon planes used by ijn, kms, rm, uss, hms respectively
 string recon[5] = {"C6N Saiun \"Myrt\"","Arado Ar 196","Caproni Ca.316","Supermarine Walrus","OS2U Kingfisher"};
@@ -102,8 +108,9 @@ string radar[5] = {"Type 2 Mark 3 Model 3 Anti-Surface Fire-Control Radar", "FuM
 string torpedo[5] = {"Type 93 torpedo", "21 inch torpedo", "533 mm torpedo", " 21-inch Mark 15 torpedo", "21-inch Mark VII torpedo"};
 
 //number of storage of planes, plane 1 attack quota, plane 2 attack quota, barrage, torpedos of heavy cruiser, torpedos of submarine respectively
-int spweapons[6] = {2,1,1,1,2,2};
+int spweapons[12] = {2,1,1,1,2,2,2,1,1,1,2,2};
 
+//function to generate today's date, return the date
 string todaysDate(){
   time_t timeNow = time(0);
   tm * currentTime = localtime(&timeNow);
@@ -126,6 +133,7 @@ string todaysDate(){
   return fullDate;
 }
 
+//function to generate current time, return the time
 string currentTime(){
   time_t timeNow = time(0);
   tm * currentT = localtime(&timeNow);
@@ -141,7 +149,7 @@ string currentTime(){
   ss >> temp;
   temp = (temp.length() == 1) ? "0" + temp : temp;
   fullTime += temp;
-  
+
   return fullTime;
 }
 
@@ -240,6 +248,30 @@ void naming(ships arr[50],string s)
     fin.close();
 }
 
+//Function to print both your board, and opponent's board in your perspectives
+void printBoard() {
+    system("CLS"); //clear screen
+    cout << setw(30) << "Opponent's Board" << setw(52) << "Your Board" << endl;
+    cout << "     0   1   2   3   4   5   6   7   8   9                 0   1   2   3   4   5   6   7   8   9  \n";
+    cout << "   +---+---+---+---+---+---+---+---+---+---+             +---+---+---+---+---+---+---+---+---+---+\n";
+    for (int i = 0; i < boardSize; i++) {
+        //Printing your opponent's board (in your perspective)
+        cout << " " << (char)('A' + i);
+        for (int j = 0; j < boardSize; j++) {
+            cout << " | " << boards.playerViewAIBoard[i][j];
+        }
+        cout << " |          ";
+
+        //Printing your own board
+        cout << " " << (char)('A' + i);
+        for (int j = 0; j < boardSize; j++) {
+            cout << " | " << boards.player[i][j];
+        }
+        cout << " |\n";
+        cout << "   +---+---+---+---+---+---+---+---+---+---+             +---+---+---+---+---+---+---+---+---+---+\n";
+    }
+}
+
 //A function that generates the ships' names for the player's fleet by the country they inputted
 void genfleet(ships uss[50], ships kms[50], ships hms[50], ships rm[50], ships ijn[50], string country, navy arr[5])
 {
@@ -328,31 +360,11 @@ void genfleet(ships uss[50], ships kms[50], ships hms[50], ships rm[50], ships i
   cout<<"Your heavy cruiser is: "<<ca<<endl;
   cout<<"Your submarine is: "<<ss<<endl;
   cout<<"Your destroyer is: "<<dd<<endl;
+  cout<<endl<<"Type anything to continue: "<<endl;
+  string sth;
+  getline(cin,sth);
+  printBoard();
 
-}
-
-//Function to print both your board, and opponent's board in your perspectives
-void printBoard() {
-    system("CLS"); //clear screen
-    cout << setw(30) << "Opponent's Board" << setw(52) << "Your Board" << endl;
-    cout << "     0   1   2   3   4   5   6   7   8   9                 0   1   2   3   4   5   6   7   8   9  \n";
-    cout << "   +---+---+---+---+---+---+---+---+---+---+             +---+---+---+---+---+---+---+---+---+---+\n";
-    for (int i = 0; i < boardSize; i++) {
-        //Printing your opponent's board (in your perspective)
-        cout << " " << (char)('A' + i);
-        for (int j = 0; j < boardSize; j++) {
-            cout << " | " << boards.playerViewAIBoard[i][j];
-        }
-        cout << " |          ";
-
-        //Printing your own board
-        cout << " " << (char)('A' + i);
-        for (int j = 0; j < boardSize; j++) {
-            cout << " | " << boards.player[i][j];
-        }
-        cout << " |\n";
-        cout << "   +---+---+---+---+---+---+---+---+---+---+             +---+---+---+---+---+---+---+---+---+---+\n";
-    }
 }
 
 //TEMPORARY PRINT BORAD FUNCTION (For developing stage only) (Will print all 4 boards)  (DELETE BEFORE SUBMISSION!!!!!!!!!!!)
@@ -450,6 +462,7 @@ void placeShip(char board[][10], int size) {
     bool vertical = rand() % 2; //true = vertical;, false = horizontal
     bool invalidPlacement = true;
     int rowStart, colStart, row, col;
+    string ainames[5] = {"ac","bb","ca","ss","dd"};
 
     if (vertical) {  //if place vertically
         while (invalidPlacement) {
@@ -465,6 +478,43 @@ void placeShip(char board[][10], int size) {
                     break;
                 }
             }
+        }
+        //storing the position of ai ship to fleet[]
+        if (size == 3)
+        {
+          if (fleet[7].name != "ca")
+          {
+            fleet[10-size].name = ainames[2];
+            fleet[10-size].xposini = col;
+            fleet[10-size].xposfnl = col;
+            fleet[10-size].yposini = rowStart;
+            fleet[10-size].yposfnl = rowStart+size-1;
+          }
+          else
+          {
+            fleet[8].name = ainames[2];
+            fleet[8].xposini = col;
+            fleet[8].xposfnl = col;
+            fleet[8].yposini = rowStart;
+            fleet[8].yposfnl = rowStart+size-1;
+          }
+        }
+        else if (size == 2)
+        {
+          fleet[9].name = ainames[4];
+          fleet[9].xposini = col;
+          fleet[9].xposfnl = col;
+          fleet[9].yposini = rowStart;
+          fleet[9].yposfnl = rowStart+size-1;
+
+        }
+        else
+        {
+          fleet[10-size].name = ainames[5-size];
+          fleet[10-size].xposini = col;
+          fleet[10-size].xposfnl = col;
+          fleet[10-size].yposini = rowStart;
+          fleet[10-size].yposfnl = rowStart+size-1;
         }
         for (int i = rowStart; i < rowStart + size; i++) {
             board[i][col] = 'O'; //place ship
@@ -485,6 +535,45 @@ void placeShip(char board[][10], int size) {
                 }
             }
         }
+
+        //storing the position of ai ship to fleet[]
+        if (size == 3)
+        {
+          if (fleet[7].name != "ca")
+          {
+            fleet[10-size].name = ainames[2];
+            fleet[10-size].xposini = colStart;
+            fleet[10-size].xposfnl = colStart+size -1;
+            fleet[10-size].yposini = row;
+            fleet[10-size].yposfnl = row;
+          }
+          else
+          {
+            fleet[8].name = ainames[2];
+            fleet[8].xposini = colStart;
+            fleet[8].xposfnl = colStart+size -1;
+            fleet[8].yposini = row;
+            fleet[8].yposfnl = row;
+          }
+        }
+        else if (size == 2)
+        {
+          fleet[9].name = ainames[4];
+          fleet[9].xposini = colStart;
+          fleet[9].xposfnl = colStart+size -1;
+          fleet[9].yposini = row;
+          fleet[9].yposfnl = row;
+
+        }
+        else
+        {
+          fleet[10-size].name = ainames[5-size];
+          fleet[10-size].xposini = colStart;
+          fleet[10-size].xposfnl = colStart+size -1;
+          fleet[10-size].yposini = row;
+          fleet[10-size].yposfnl = row;
+        }
+
         for (int i = colStart; i < colStart + size; i++) {
             board[row][i] = 'O'; //place ship
         }
@@ -729,6 +818,7 @@ void deployment(char board[][10])
     int j = 0;
     while (true)
     {
+      cout<<"The size of "<<fleet[i].name<<" is "<<shipsize[i]+1<<" units,"<<endl;
       cout<<"Please enter the "<<pos[j]<<" coordinates of "<<fleet[i].name<<":"<<endl;
       int invalidinput = 1;
       string target;
@@ -779,7 +869,7 @@ void deployment(char board[][10])
   }
 }
 
-//function to score a hit and update the map
+//function for player to score a hit and update the map
 void fire(int row, int col)
 {
 
@@ -800,6 +890,28 @@ void fire(int row, int col)
       boards.playerViewAIBoard[row ][col] = 'X';
     }
 
+  }
+
+}
+
+
+void aifire(int row, int col)
+{
+
+  if (boards.player[row][col] == 'O')
+  {
+    //if hit, mark '@'
+    boards.player[row ][col] = '@';
+    boards.AIViewPlayerBoard[row][col] = '@';
+    hitflag = 1;
+    currenttarget = row*10 + col;
+    hitzone[0] = row*10 + col;
+
+  }
+  else if (boards.player[row][col] != '@')
+  {
+    boards.player[row][col] = 'X';   //if not hit, mark 'X'
+    boards.AIViewPlayerBoard[row ][col] = 'X';
   }
 
 }
@@ -1099,6 +1211,135 @@ void squadron(string country)
   }
 }
 
+
+void aiscan(int coords)
+{
+
+  int centerCol = coords % 10;
+  int centerRow = (coords - centerCol) / 10;
+
+  //storing the coordinates of the recon zone
+  Target targets[5];
+
+  int j = 0;
+  for (int i = 0; i < 2; i++)
+  {
+    if (centerRow - 1 < 0 || centerCol - 1 + j + i > 9 ||  centerCol - 1 + j + i < 0)
+    {
+      targets[i].row = centerRow;
+      targets[i].col = centerCol;
+    }
+    else
+    {
+      targets[i].row = centerRow - 1;
+      targets[i].col = centerCol - 1 + j + i;
+    }
+
+    j++;
+  }
+
+  targets[2].row = centerRow;
+  targets[2].col = centerCol;
+
+  j = 0;
+  for (int i = 0; i < 2; i++)
+  {
+    if (centerRow + 1  > 9 || centerCol - 1 + j + i > 9 ||  centerCol - 1 + j + i < 0)
+    {
+      targets[i+3].row = centerRow;
+      targets[i+3].col = centerCol;
+    }
+    else
+    {
+      targets[i+3].row = centerRow + 1;
+      targets[i+3].col = centerCol - 1 + j + i;
+    }
+    j++;
+  }
+
+  for (int i = 0; i < 5; i++)
+  {
+    hitcache[i] = -1;
+  }
+
+  int found = 0;
+  //scanning on the given zone
+  for (int i = 0; i < 5; i++)
+  {
+    //if hostile found
+    if (boards.player[targets[i].row][targets[i].col] == 'O')
+    {
+      boards.AIViewPlayerBoard[targets[i].row][targets[i].col] = '!';
+      hitflag = 1;
+      found = 1;
+    }
+
+    //if no hostile found
+    else if (boards.AIViewPlayerBoard[targets[i].row][targets[i].col] != '@')
+    {
+      boards.AIViewPlayerBoard[targets[i].row][targets[i].col] = 'X';
+    }
+    hitcache[i] = targets[i].row*10 + targets[i].col;
+  }
+
+  if (found == 0)
+  {
+    currenttarget = -1;
+    targetchecked = 0;
+  }
+}
+
+void analyzrecon()
+{
+
+}
+
+void aistrike(int coords)
+{
+
+  int centerCol = coords % 10;
+  int centerRow = (coords - centerCol) / 10;
+
+  //storing all the coordinates of the hit zone to targets[]
+  Target targets[5];
+
+  targets[0].row = centerRow -1;
+  targets[0].col = centerCol;
+
+  for (int i = 0; i < 3; i++)
+  {
+    targets[i+1].row = centerRow;
+    targets[i+1].col = centerCol-1+i;
+  }
+
+  targets[4].row = centerRow +1;
+  targets[4].col = centerCol;
+
+  //firing on the hit zone
+  int k = 0;
+  for (int i = 0; i < 5; i++)
+  {
+    if (boards.player[targets[i].row][targets[i].col] == 'O')
+    {
+      //if hit, mark '@'
+      boards.player[targets[i].row ][targets[i].col] = '@';
+      boards.AIViewPlayerBoard[targets[i].row][targets[i].col] = '@';
+      hitflag = 1;
+      currenttarget = targets[i].row*10 + targets[i].col;
+      hitzone[k] = targets[i].row*10 + targets[i].col;
+      k++;
+
+    }
+    else if (boards.player[targets[i].row][targets[i].col] != '@')
+    {
+      boards.player[targets[i].row][targets[i].col] = 'X';   //if not hit, mark 'X'
+      boards.AIViewPlayerBoard[targets[i].row ][targets[i].col] = 'X';
+    }
+  }
+
+  spweapons[6] -=1;
+}
+
 //function for the barrage feature
 void barrage(string country)
 {
@@ -1173,6 +1414,45 @@ void barrage(string country)
 
     spweapons[3] = 0;
   }
+}
+
+
+void aibarrage(int coords)
+{
+  int centerCol = coords % 10;
+  int centerRow = (coords - centerCol) / 10;
+
+  //storing all the coordinates of the hit zone to targets[]
+  Target targets[9];
+
+  //for the first row
+  for (int i = 0; i < 3; i++)
+  {
+    targets[i].row = centerRow -1;
+    targets[i].col = centerCol -1 +i;
+  }
+
+  //for the second row
+  for (int i = 0; i < 3; i++)
+  {
+    targets[i+3].row = centerRow;
+    targets[i+3].col = centerCol-1+i;
+  }
+
+  //for the third row
+  for(int i = 0; i < 3; i++)
+  {
+    targets[i+6].row = centerRow+1;
+    targets[i+6].col = centerCol-1 +i;
+  }
+
+  //fire according to the coordinates
+  for (int i = 0; i < 9; i++)
+  {
+    aifire(targets[i].row, targets[i].col);
+  }
+
+  spweapons[9] = 0;
 }
 
 //function for the cruiser feature
@@ -1258,6 +1538,41 @@ void cruiser(string country)
 
     spweapons[4] -= 1;
   }
+}
+
+
+void aircruiser(int coords, char mode)
+{
+  int centerCol = coords % 10;
+  int centerRow = (coords - centerCol) / 10;
+
+  //getting the coordinates of the hit zone
+  Target targets[3];
+
+    if (mode == 'h')
+    {
+      for (int i = 0; i < 3; i++)
+      {
+        targets[i].row = centerRow;
+        targets[i].col = centerCol -1 + i;
+      }
+    }
+    else if (mode == 'v')
+    {
+      for (int i = 0; i < 3; i++)
+      {
+        targets[i].row = centerRow -1 + i;
+        targets[i].col = centerCol;
+      }
+    }
+
+  //firing on the hit zone
+  for (int i = 0; i < 3; i++)
+  {
+    aifire(targets[i].row, targets[i].col);
+  }
+
+  spweapons[10] -= 1;
 }
 
 //function for the sub feature
@@ -1487,6 +1802,108 @@ void sub(string country)
   }
 }
 
+
+void aisub(char mode)
+{
+  int centerRow, centerCol, coords;
+  if (mode == 'h')
+  {
+    subdirflag2 = rand() % 2;
+    coords = subdirh[subdirflag2][subdirflag2];
+  }
+  else
+  {
+    subdirflag2 = rand() % 2;
+    coords = subdirv[subdirflag2][subdirflag2];
+  }
+
+  centerCol = coords % 10;
+  centerRow = (coords - centerCol) / 10;
+
+  //firing the torpedo horizontally
+  if (mode == 'h')
+  {
+
+    //firing the torpedo from the right side of the map
+    if (centerCol == 9)
+    {
+      for (int i = 0; i < 10; i++)
+      {
+        if (boards.player[centerRow][9-i] == 'O')
+        {
+          hitflag = 1;
+          currenttarget = centerRow*10 + 9-i;
+          hitzone[0] = centerRow*10 + 9-i;
+          aifire(centerRow, 9-i);
+          break;
+        }
+        aifire(centerRow, 9-i);
+
+      }
+    }
+
+    //firing the torpedo from the left side of the map
+    else
+    {
+      for (int i = 0; i < 10; i++)
+      {
+        if (boards.player[centerRow][i] == 'O')
+        {
+          hitflag = 1;
+          currenttarget = centerRow*10 + i;
+          hitzone[0] = centerRow*10 + i;
+          aifire(centerRow, i);
+          break;
+        }
+        aifire(centerRow, i);
+
+      }
+    }
+  }
+
+  //firing the torpedo vertically
+  else
+  {
+
+    //firing the torpedo from the south side of the map
+    if (centerRow == 9)
+    {
+      for (int i = 0; i < 10; i++)
+      {
+        if (boards.player[9-i][centerCol] == 'O')
+        {
+          hitflag = 1;
+          currenttarget = (9-i)*10 + centerCol;
+          hitzone[0] = (9-i)*10 + centerCol;
+          aifire(9-i, centerCol);
+          break;
+        }
+        aifire(9-i, centerCol);
+
+      }
+    }
+
+    //firing the torpedo from the north side of the map
+    else
+    {
+      for (int i = 0; i < 10; i++)
+      {
+        if (boards.player[i][centerCol] == 'O')
+        {
+          hitflag = 1;
+          currenttarget = i*10 + centerCol;
+          hitzone[0] = i*10 + centerCol;
+          aifire(i, centerCol);
+          break;
+        }
+        aifire(i, centerCol);
+
+      }
+    }
+  }
+  spweapons[11] -= 1;
+}
+
 //function for allowing player to pick which advanced weapon
 void advancedweapons(string country)
 {
@@ -1538,6 +1955,7 @@ void advancedweapons(string country)
   }
 }
 
+//function to randomly generate an id that has not been exist yet and directly store it into the file
 void generateID(){
   int existedID[maxSavedRecords], count = 0;
   bool validID = true;
@@ -1574,24 +1992,29 @@ void generateID(){
   fin.close();
 }
 
+//save game into "Unfinished_Game.txt" for future
 void saveGame(){
-  
+  //input game name and player name
   cout << "Please enter your name for saving: ";
   getline(cin, loadGameData.playerName);
   cout << "Please name your game: ";
   getline(cin, loadGameData.gameName);
   generateID();
-  
+
   ofstream fout;
   fout.open("Unfinished_Game.txt", ios::app);
   if(fout.fail()){
     cout << "Failed opening file!\n";
     exit(1);
   }
-  fout << "loadGameData: " << loadGameData.id << " " << loadGameData.playerName << " " << loadGameData.gameName << " " << loadGameData.country << " " << loadGameData.totalMovesUsed << " ";
+
+  //store first line (recording data other than boards)
+  fout << "loadGameData: " << loadGameData.id << " " << loadGameData.playerName << " " << loadGameData.gameName << " ";
+  fout << loadGameData.country << " " << loadGameData.totalMovesUsed << " ";
   fout << todaysDate() << " ";
   fout << currentTime() << endl;
 
+  //store all four boards into the file
   for(int i = 0; i < boardSize; i++){
     for (int j = 0; j < boardSize; j++){
       fout << boards.player[i][j];
@@ -1618,16 +2041,15 @@ void saveGame(){
   fout << endl;
   fout << endl;
 
-  //TODO: safe the array into the file.
-
   fout.close();
 }
 
+//when game finished, same record into "Game_History.txt"
 void saveRecord(bool playerWon){
   ofstream fout;
-  fout.open("Game_History.txt");
-  if(fout.fail(), ios::app){
-    cout << "Failed opening file!" << endl;
+  fout.open("Game_History.txt", ios::app);
+  if(fout.fail()){
+    cout << "Failed opening file! this???" << endl;
     exit(1);
   }
   //if player won, then game_history file save "1"
@@ -1636,28 +2058,14 @@ void saveRecord(bool playerWon){
   fout.close();
 }
 
+//check if game finished, return true if finished, will also check whether player won or lose
 bool gameFinished(bool &playerWon){
   bool gameFin = true;
+
+  //check if player's board is empty or not
   for(int i = 0; i < boardSize; i++){
     for (int j = 0; j < boardSize; j++){
       if(boards.player[i][j] == 'O'){
-        gameFin = false;
-        break;
-      }
-    }
-    if(! gameFin){
-      break;
-    }
-  }
-  if(gameFin){
-    playerWon = true;
-    return true;
-  }
-
-  gameFin = true;
-  for(int i = 0; i < boardSize; i++){
-    for (int j = 0; j < boardSize; j++){
-      if(boards.AI[i][j] == 'O'){
         gameFin = false;
         break;
       }
@@ -1671,7 +2079,490 @@ bool gameFinished(bool &playerWon){
     return true;
   }
 
+  //check if AI's board is empty or not
+  gameFin = true;
+  for(int i = 0; i < boardSize; i++){
+    for (int j = 0; j < boardSize; j++){
+      if(boards.AI[i][j] == 'O'){
+        gameFin = false;
+        break;
+      }
+    }
+    if(! gameFin){
+      break;
+    }
+  }
+  if(gameFin){
+    playerWon = true;
+    return true;
+  }
+
   return false;
+}
+
+//check health point of a specific ship
+int checkhp2(int num)
+{
+  int start, end;
+  char mode;
+  if (fleet[num].xposini = fleet[num].xposfnl)
+  {
+    mode = 'v';
+    if (fleet[num].yposfnl < fleet[num].yposini)
+    {
+      start = fleet[num].yposfnl;
+      end = fleet[num].yposini;
+    }
+    else
+    {
+      end = fleet[num].yposfnl;
+      start = fleet[num].yposini;
+    }
+  }
+  else
+  {
+    mode = 'h';
+    if (fleet[num].xposfnl < fleet[num].xposini)
+    {
+      start = fleet[num].xposfnl;
+      end = fleet[num].xposini;
+    }
+    else
+    {
+      end = fleet[num].xposfnl;
+      start = fleet[num].xposini;
+    }
+  }
+
+  int hp = 0;
+  if (mode == 'v')
+  {
+    for (int i = start; i <= end; i++)
+    {
+      if (boards.AI[i][fleet[num].xposfnl] == '@')
+      {
+        hp++;
+      }
+    }
+  }
+  else
+  {
+    for (int i = start; i <= end; i++)
+    {
+      if (boards.AI[fleet[num].yposfnl][i] == '@')
+      {
+        hp++;
+      }
+    }
+  }
+
+  return hp;
+}
+
+//check health point the AI fleet and return ship with critical status
+char checkhp1()
+{
+  int achp = 5 - checkhp2(5);
+  int bbhp = 4 - checkhp2(6);
+  int cahp = 3 - checkhp2(7);
+
+  if (bbhp <= 2)
+  {
+    if (spweapons[9] != 0)
+    {
+      return 'b';
+    }
+  }
+  else if (achp <= 2)
+  {
+    if (spweapons[6] != 0)
+    {
+      return 'a';
+    }
+  }
+  else if (cahp <= 2)
+  {
+    if (spweapons[10] != 0)
+    {
+      return 'c';
+    }
+  }
+
+  return 'n';
+
+}
+
+//function to scan for a point for target
+int scanpt()
+{
+  int count = 0, centerRow = -1, centerCol = -1, temprow = -1, tempcol = -1, maxclear = 0;
+  while (count <= 50)
+  {
+    centerCol = rand() % 10;
+    centerRow = rand() % 10;
+    if (boards.AIViewPlayerBoard[centerRow][centerCol] != '\0')
+    {
+      continue;
+    }
+    Target targets[9];
+
+    //for the first row
+    for (int i = 0; i < 3; i++)
+    {
+      targets[i].row = centerRow -1;
+      targets[i].col = centerCol -1 +i;
+    }
+
+    //for the second row
+    for (int i = 0; i < 3; i++)
+    {
+      targets[i+3].row = centerRow;
+      targets[i+3].col = centerCol-1+i;
+    }
+
+    //for the third row
+    for(int i = 0; i < 3; i++)
+    {
+      targets[i+6].row = centerRow+1;
+      targets[i+6].col = centerCol-1 +i;
+    }
+    int clearzone = 0;
+    for (int i = 0; i < 9; i++)
+    {
+      if (boards.AIViewPlayerBoard[targets[i].row][targets[i].col] == '\0')
+      {
+        clearzone++;
+      }
+    }
+    if (clearzone == 9)
+    {
+      maxclear = 9;
+      break;
+    }
+    else if ( clearzone > maxclear)
+    {
+      maxclear = clearzone;
+      tempcol = centerCol;
+      temprow = centerRow;
+    }
+    count++;
+  }
+  if (maxclear != 9)
+  {
+    centerCol = tempcol;
+    centerRow = temprow;
+  }
+
+  return centerRow*10 + centerCol;
+}
+
+//function to return center coords of scanning zone for recon
+int checkxtreme(int coords)
+{
+  int centerCol = coords % 10;
+  int centerRow = (coords - centerCol) / 10;
+  int k = -1;
+
+  if (centerCol == 9)
+  {
+    if (centerRow == 9)
+    {
+      k = 88;
+    }
+    else if (centerRow == 0)
+    {
+      k = 18;
+    }
+    else
+    {
+      k = centerRow*10 + 8;
+    }
+  }
+  else if (centerCol == 0 )
+  {
+    if (centerRow == 9)
+    {
+      k = 81;
+    }
+    else if (centerRow == 0)
+    {
+      k = 11;
+    }
+    else
+    {
+      k = centerRow*10 + 1;
+    }
+  }
+  else if (centerRow > 7)
+  {
+    k = (centerRow -1)*10 + centerCol;
+  }
+  else
+  {
+    k = (centerRow +1)*10 + centerCol;
+  }
+
+  return k;
+}
+//function for ai to pick different spweapons under different circumstances
+void aibattleplan()
+{
+  int numofhits = 0, onlyhit = -1;
+  int target[5] = {0,0,0,0,0};
+  for (int i = 0; i < 5; i++)
+  {
+    int x = hitcache[i] % 10;
+    int y = hitcache[i]/10;
+
+    if (boards.AIViewPlayerBoard[y][x] == '!')
+    {
+      target[i] = 1;
+      onlyhit = hitcache[i];
+      numofhits++;
+    }
+  }
+
+  if (numofhits > 2 && spweapons[9] != 0)
+  {
+    aibarrage(hitcache[2]);
+  }
+  else if (spweapons[10] == 0 && numofhits == 1)
+  {
+    aifire(onlyhit/10 , onlyhit % 10);
+    currenttarget = onlyhit;
+  }
+  else if (spweapons[10] != 0)
+  {
+    if (target[0] == 1 && target[1] == 1)
+    {
+      aircruiser(hitcache[0] +1, 'h');
+    }
+    else if (target[3] == 1 && target[4] ==1)
+    {
+      aircruiser(hitcache[3] + 1, 'h');
+    }
+    else if (target[0] == 1 || target[1] == 1)
+    {
+      if (target[0] == 1)
+      {
+        if (target[3] == 1)
+        {
+          aircruiser(hitcache[0] + 10, 'v');
+        }
+        else if (target[2] == 1)
+        {
+          aistrike(hitcache[2] -1);
+        }
+        else
+        {
+          if (hitcache[0]%10 - 1 == 0)
+          {
+            aifire(hitcache[0]/10, hitcache[0]%10 - 1);
+            currenttarget = -1;
+            hitflag = 0;
+          }
+          else
+          {
+            aircruiser(hitcache[0] - 1, 'h');
+          }
+
+        }
+      }
+      else
+      {
+        if (target[4] == 1)
+        {
+          aircruiser(hitcache[1] + 10, 'v');
+        }
+        else if (target[2] == 1)
+        {
+          aistrike(hitcache[2]+1);
+        }
+        else
+        {
+          if (hitcache[1]%10 +1 == 9)
+          {
+            aifire(hitcache[1]/10, hitcache[1]%10 + 1);
+            currenttarget = -1;
+            hitflag = 0;
+          }
+          else
+          {
+            aircruiser(hitcache[1] + 1, 'h');
+          }
+
+        }
+      }
+    }
+    else if (target[3] == 1 || target[4] ==1)
+    {
+      if (target[3] == 1 )
+      {
+        if (target[2] == 1)
+        {
+          aistrike(hitcache[2] -1);
+        }
+        else if (hitcache[3] %10 > 1)
+        {
+          aircruiser(hitcache[3] -1, 'h');
+        }
+        else if (hitcache[3] %10 == 1)
+        {
+          aircruiser(hitcache[3], 'h');
+        }
+        else
+        {
+          aircruiser(hitcache[3]+10, 'v');
+        }
+      }
+      else
+      {
+        if (target[2] == 1)
+        {
+          aistrike(hitcache[2] +1);
+        }
+        else if (hitcache[4] %10 < 8 )
+        {
+          aircruiser(hitcache[4] + 1, 'h');
+        }
+        else if (hitcache[3] %10 == 1)
+        {
+          aircruiser(hitcache[4] , 'h');
+        }
+        else
+        {
+          aircruiser(hitcache[4]+10, 'v');
+        }
+      }
+    }
+    else if (numofhits != 0)
+    {
+      if (hitcache[2] / 10 == 8)
+      {
+        aircruiser(hitcache[2], 'v');
+      }
+      else
+      {
+        aircruiser(hitcache[2] + 10, 'v');
+      }
+    }
+    else
+    {
+      if (hitcache[2] / 10 - 2 == 0)
+      {
+        aifire(hitcache[2]/10-2, hitcache[2]% 10);
+      }
+      else
+      {
+        aircruiser(hitcache[2] -20, 'v');
+      }
+    }
+  }
+  else
+  {
+    aifire(onlyhit/10, onlyhit %10);
+  }
+}
+
+//check the distance of each value in hitzone[] to currenttarget
+void checkhitzone()
+{
+  for (int i = 0; i < 9; i++)
+  {
+
+  }
+}
+
+
+
+//function for operations of the AI
+void aiops()
+{
+  char mode = checkhp1();
+  char modedir[2] = {'h','v'};
+  if (hitflag == 0)
+  {
+    int coords = scanpt();
+    if (currenttarget != -1)
+    {
+      coords = currenttarget + 10;
+      targetchecked = 1;
+    }
+    int centerCol = coords % 10;
+    int centerRow = (coords - centerCol) / 10;
+    if (mode = 'n')
+    {
+      if (! sunk(8) && spweapons[11] != 0 && currenttarget == -1)
+      {
+        aisub(modedir[rand() % 2]);
+      }
+      else
+      {
+        if (! sunk(5))
+        {
+          aiscan(coords);
+        }
+        else
+        {
+          aifire(centerRow, centerCol);
+        }
+      }
+    }
+
+    else if (mode == 'a')
+    {
+      aistrike(coords);
+    }
+    else if (mode == 'b')
+    {
+      aibarrage(coords);
+    }
+    else if (mode == 'c')
+    {
+      aircruiser(coords, modedir[rand() % 2]);
+    }
+  }
+
+  //for hitflag == 1
+  else
+  {
+    if (mode == 'n')
+    {
+      int k = 0;
+      for (int i = 0; i < 9; i++)
+      {
+        if (hitzone[i] == -1)
+        {
+          k = i;
+          break;
+        }
+      }
+      if (currenttarget == -1)
+      {
+        aibattleplan();
+        targetchecked = 0;
+        hitflag = 0;
+      }
+      else
+      {
+        if (k > 1 || targetchecked == 1)
+        {
+          aibattleplan();
+          targetchecked = 0;
+          hitflag = 0;
+        }
+        else
+        {
+          if (! sunk(5))
+          {
+            int scan = checkxtreme(currenttarget);
+            aiscan(scan);
+            targetchecked++;
+          }
+        }
+      }
+    }
+  }
 }
 
 //function for actual game process
@@ -1680,7 +2571,7 @@ void playGame(string country){
   bool playerWon, gameOver = false;
   while (! gameOver) {
     tempPrintBoard();
-    
+
     cout<< endl <<"AWAITING ORDER!!!"<<endl;
     cout<<"To fire regualr rounds, type the coordinate (row, column)"<<endl;
     cout<<"To use special weapons, type \"aw\""<<endl;
@@ -1688,13 +2579,14 @@ void playGame(string country){
     cout<<"To quit the game, type \"q\""<<endl;
     cout << endl;
 
-
     input = playerInput();
-    if (input == "aw")
+
+    //different actions based on which type of player input
+    if (input == "aw")   //advanced weapons
     {
       advancedweapons(country);
     }
-    else if (input == "Q" || input == "q")
+    else if (input == "Q" || input == "q")   //quit the game
     {
         //ask user if he/she wants to save the file
         cout << "Are you sure you want to quit the game without saving? (\'y\' to quit, \'n\' to save): ";
@@ -1709,21 +2601,30 @@ void playGame(string country){
         }
         break;
     }
-    else if (input == "S" || input == "s"){
+    else if (input == "S" || input == "s"){   //save the game
       saveGame();
       break;
     }
-    else{
+    else{    //normal fire
       fire((int)input[0] - 'A', (int)input[1] - '0');
     }
     loadGameData.totalMovesUsed++;
     gameOver = gameFinished(playerWon);
+    if (! gameOver)
+    {
+      aiops();
+    }
+    gameOver = gameFinished(playerWon);
   }
+
+  //when game is over, save game records
   if(gameOver){
     saveRecord(playerWon);
   }
+
 }
 
+//function to read a line of "Game_History.txt" file
 void readFromFileToProgram(string inputLine, char board[][boardSize]){
   for(int i = 0; i < boardSize; i++){
     for(int j = 0; j < boardSize; j++){
@@ -1732,14 +2633,16 @@ void readFromFileToProgram(string inputLine, char board[][boardSize]){
   }
 }
 
-void loadGame(){
-  string line, firstWord, secondWord, existingID[maxSavedRecords], input, temp;
-  int selectedGame, count = 0, lineRead;
-  bool gameExist = false, validEntry = false, validFormat, startReadingLine = false, quit = false;
-  
+//function to display all existing unfinished games (return whether unfinished games exist or not)
+bool displayExistingGames(string existingID[]){
+  string line, firstWord, temp;
+  int count = 0;
+  bool gameExist = false;
+
   system("CLS");
   cout << "All existing game:\n";
-  cout << "ID " << setw(13) << "Player Name" << setw(13) << "Game Name" << setw(10) << "Country" << setw(5) << "Move" << setw(13) << "Date" << setw(8) << "Time" << endl;
+  cout << "ID " << setw(13) << "Player Name" << setw(13) << "Game Name" << setw(10) << "Country";
+  cout << setw(5) << "Move" << setw(13) << "Date" << setw(8) << "Time" << endl;
   cout << "--- ------------ ------------ --------- ---- ------------ -------\n";
 
   ifstream fin;
@@ -1748,61 +2651,88 @@ void loadGame(){
     cout << "Failed opening file!";
     exit(1);
   }
+  //for every heading line in the file, output its information
   while(getline(fin, line)){
     istringstream iss(line);
     iss >> firstWord;
     if(firstWord == "loadGameData:"){
       gameExist = true;
       iss >> existingID[count] >> loadGameData.playerName >> loadGameData.gameName >> loadGameData.country >> temp >> loadGameData.date >> loadGameData.time;
-      cout << setw(2) << existingID[count] << ": " << setw(12) << loadGameData.playerName << " " << setw(12) << loadGameData.gameName << " " << setw(9) << loadGameData.country << " " << setw(4) << temp << " " << setw(12) << loadGameData.date << " " << setw(7) << loadGameData.time << endl;
+      cout << setw(2) << existingID[count] << ": " << setw(12) << loadGameData.playerName << " ";
+      cout << setw(12) << loadGameData.gameName << " " << setw(9) << loadGameData.country << " ";
+      cout << setw(4) << temp << " " << setw(12) << loadGameData.date << " " << setw(7) << loadGameData.time << endl;
       count++;
     }
   }
   fin.close();
 
-  if (gameExist){
-    while (! validEntry){
-      validFormat = true;
-      cout << endl << "Select a game to load ('Q' to quit): ";
-      getline(cin, input);
-      if (input == "Q" || input == "q"){
-        quit = true;
-        validEntry = true;
+  return gameExist;
+}
+
+//function to allow player to select an existing game to load (with input validation), return ID of existing game or -1 if quit
+int selectExistingGame(string existingID[]){
+  bool validFormat = true;
+  int selectedGame;
+  string input;
+
+  while (true){
+    validFormat = true;
+    cout << endl << "Select a game to load ('Q' to quit): ";
+    getline(cin, input);
+
+    //if player wants to quit
+    if (input == "Q" || input == "q"){
+      return -1;
+    }
+
+    //check if format is correct or not
+    for(int i = 0; input[i] != '\0'; i++){
+      if (input[i]< '0' || input[i] > '9'){
+        validFormat = false;
         break;
       }
-      for(int i = 0; input[i] != '\0'; i++){
-        if (input[i]< '0' || input[i] > '9'){
-          validFormat = false;
-          break;
-        }
-      }
-      if (validFormat){
-        selectedGame = stoi(input);
-        for(int i = 0; i < maxSavedRecords && ! existingID[i].empty(); i++){
-          if (selectedGame == stoi(existingID[i])){
-            validEntry = true;
-            break;
-          }
-        }
-        if(!validEntry){
-          cout << "Invalid input! Please select an existing game!" << endl;
-        }
-      }
-      else {
-        cout << "Invalid input! Please type an integer or \'Q\' to quit!" << endl;
-      }
-
     }
-    
-    if(! quit){
+
+    if (validFormat){
+      selectedGame = stoi(input);
+
+      //check if input is valid or not, if yes, then return the selected existing game
+      for(int i = 0; i < maxSavedRecords && ! existingID[i].empty(); i++){
+        if (selectedGame == stoi(existingID[i])){
+          return selectedGame;
+        }
+      }
+      cout << "Invalid input! Please select an existing game!" << endl;
+    }
+    else {
+      cout << "Invalid input! Please type an integer or \'Q\' to quit!" << endl;
+    }
+  }
+}
+
+//function to load the existing game from the file to the program and start playing it
+void loadGame(){
+  string line, firstWord, secondWord, existingID[maxSavedRecords], temp;
+  ships uss[50], kms[50], hms[50], rm[50], ijn[50];
+  int selectedGame, lineRead;
+  bool gameExist, startReadingLine = false;
+
+  gameExist = displayExistingGames(existingID);
+
+  if (gameExist){
+    selectedGame = selectExistingGame(existingID);
+
+    if(selectedGame != -1){
       ifstream fin;
       fin.open("Unfinished_Game.txt");
       if(fin.fail()){
         cout << "Failed opening file!";
         exit(1);
       }
+
+      //store the game data in the film into our program
       while(getline(fin, line)){
-        
+
         if(!startReadingLine){
           istringstream iss(line);
           iss >> firstWord;
@@ -1840,8 +2770,9 @@ void loadGame(){
         }
       }
       fin.close();
-      ships uss[50], kms[50], hms[50], rm[50], ijn[50];
-      cout << loadGameData.country << endl;
+
+
+      //start the game
       naming(uss,"USS");
       naming(kms,"KMS");
       naming(hms,"HMS");
@@ -1865,8 +2796,6 @@ void newGame() {
   naming(hms,"HMS");
   naming(rm,"RM");
   naming(ijn,"IJN");
-
-  srand(time(NULL));
 
   system("CLS");
   int flag = 0;
@@ -1895,13 +2824,14 @@ void newGame() {
   loadGameData.totalMovesUsed = 0;
 
   genfleet(uss, kms, hms, rm, ijn, country, fleet);
-  deployment(boards.player);
-  //generateRandomBoard(boards.player);
+  //deployment(boards.player);
+  generateRandomBoard(boards.player);
   generateRandomBoard(boards.AI);
 
   playGame(country);
 }
 
+//function to print all game records history
 void printAllRecords(GameRecords* &head){
   GameRecords* current = head;
 
@@ -1911,25 +2841,28 @@ void printAllRecords(GameRecords* &head){
   cout << "---- ------------ ------------ --------- ------ ---- ------------" << endl;
 
   for(int i = 1; current!=NULL; i++){
-    cout << setw(4) << i << " " << setw(12) << current->playerName << " " << setw(12) << current->gameName << " " << setw(9) << current->country << " " << setw(6) << ((current->won) ? "Won" : "Lose") << " " << setw(4) << current->totalMoveUsed << " " << setw(12) << current->date << endl;
+    cout << setw(4) << i << " " << setw(12) << current->playerName << " " << setw(12) << current->gameName << " ";
+    cout << setw(9) << current->country << " " << setw(6) << ((current->won) ? "Won" : "Lose") << " ";
+    cout << setw(4) << current->totalMoveUsed << " " << setw(12) << current->date << endl;
     current = current->next;
   }
   current = new GameRecords;
   delete current;
 }
 
+//function to sort and store the game history records in order of (win, then lose), then (ascending order of amount of moves used)
 void newGameRecord(GameRecords* &head, string line, int size){
   int wonInt, movesInt;
   string won, move, gameName, playerName, date, country;
   bool newRecordInserted = false;
 
-
+  //store all information of this record into a temporary dynamic array of data
   cout << line << endl;
   istringstream iss(line);
   iss >> won >> move >> playerName >> gameName >> country >> date;
   wonInt = stoi(won);
   movesInt = stoi(move);
-  
+
   GameRecords* temp = new GameRecords;
   GameRecords* current = head;
   GameRecords* data = new GameRecords;
@@ -1941,6 +2874,7 @@ void newGameRecord(GameRecords* &head, string line, int size){
   data->date = date;
   data->next = NULL;
 
+  //store records into the dynamic array in a specific order
   if(head == NULL || (wonInt > head->won || (wonInt == head->won && movesInt <= head->totalMoveUsed))){
     temp = head;
     data->next = temp;
@@ -1948,11 +2882,11 @@ void newGameRecord(GameRecords* &head, string line, int size){
     newRecordInserted = true;
   }
   else{
-    while (current->next != NULL){    
+    while (current->next != NULL){
       if (wonInt > current->next->won || (wonInt == current->next->won && movesInt <= current->next->totalMoveUsed)){
         data->next = current->next;
         current->next = data;
-        
+
         newRecordInserted = true;
         break;
       }
@@ -1962,6 +2896,7 @@ void newGameRecord(GameRecords* &head, string line, int size){
   if(!newRecordInserted){
     current->next = data;
   }
+
   temp = new GameRecords;
   current = new GameRecords;
   data = new GameRecords;
@@ -1970,6 +2905,7 @@ void newGameRecord(GameRecords* &head, string line, int size){
   delete data;
 }
 
+//function to access file "Game_History.txt", extracting all game history records
 void showGameRecord(){
   int size = 0;
   string input, line;
@@ -1981,6 +2917,8 @@ void showGameRecord(){
     cout << "Failed opening file!" << endl;
     exit(1);
   }
+
+  //loop until all records in the file have been optained, and stored in a dynamic array structure
   while(getline(fin, line)){
     newGameRecord(head, line, size);
   }
@@ -1993,12 +2931,40 @@ void showGameRecord(){
 
 }
 
-//Main Menu
+//function that prints the Main Menu Screen (allow player to select choices)
 int mainMenu(){
   system("CLS");
   string choice;
 
-  //main menu
+  //main menu screen
+  ifstream fin;
+  fin.open("ship.txt");
+  string x;
+  int count;
+  if (fin.fail()) {
+		cout << "Error in file opening!"<< endl;
+  	exit(1);
+   }
+
+
+  while (getline(fin,x))
+  {
+    for (int i = 0; i < 60; i++)
+    {
+      if (x[i] == '1')
+      {
+        cout<<"#";
+      }
+      else
+      {
+        cout<<" ";
+      }
+    }
+    cout<<endl;
+
+  }
+  fin.close();
+  cout<<endl;
   cout << "********************************************" << endl;
   cout << "***** Welcome to Battleship Remastered *****" << endl;
   cout << "********************************************" << endl;
@@ -2017,6 +2983,7 @@ int mainMenu(){
 
 }
 
+//function to wipe board, clearing all the data in the board
 void wipeBoard(char board[][boardSize]){
   for(int i = 0; i < boardSize; i++){
     for(int j = 0; j < boardSize; j++){
@@ -2025,7 +2992,9 @@ void wipeBoard(char board[][boardSize]){
   }
 }
 
+//main function
 int main(){
+  srand(time(NULL));
   int choice;
   choice = mainMenu();
   //loop whil player didn't enter 'q' or 'Q' for quit
@@ -2035,17 +3004,20 @@ int main(){
     wipeBoard(boards.playerViewAIBoard);
     wipeBoard(boards.AIViewPlayerBoard);
     switch (choice){
+      //create new game (generating a new board)
       case 1:
         newGame();
         break;
+      //load game (extracting an existing game from the file)
       case 2:
         loadGame();
         break;
+      //show all game history
       case 3:
         showGameRecord();
         break;
     }
-    
+
     choice = mainMenu();
   }
 
