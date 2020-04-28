@@ -3,12 +3,13 @@
 
 #include <iostream>
 #include <fstream>
-#include <sstream>
+#include <sstream> //istringstream
 #include <cmath>
 #include <iomanip>  //setw()
 #include <cstdlib>  //rand(), srand(), system()
 #include <ctime> //time()
 #include <string> //stoi()
+#include "displayGameHistory.h"
 
 using namespace std;
 
@@ -37,17 +38,6 @@ struct LoadGame {
 };
 
 LoadGame loadGameData;
-
-//structure for storing and sorting all game records (for dynamic array)
-struct GameRecords {
-  int won;
-  int totalMoveUsed;
-  string gameName;
-  string playerName;
-  string country;
-  string date;
-  GameRecords* next;
-};
 
 //A structure stroing all the ships of a country
 struct ships
@@ -869,6 +859,28 @@ void deployment(char board[][10])
   }
 }
 
+//function of aifire
+void aifire(int row, int col)
+{
+
+  if (boards.player[row][col] == 'O')
+  {
+    //if hit, mark '@'
+    boards.player[row ][col] = '@';
+    boards.AIViewPlayerBoard[row][col] = '@';
+    hitflag = 1;
+    currenttarget = row*10 + col;
+    hitzone[0] = row*10 + col;
+
+  }
+  else if (boards.player[row][col] != '@')
+  {
+    boards.player[row][col] = 'X';   //if not hit, mark 'X'
+    boards.AIViewPlayerBoard[row ][col] = 'X';
+  }
+
+}
+
 //function for player to score a hit and update the map
 void fire(int row, int col)
 {
@@ -890,28 +902,6 @@ void fire(int row, int col)
       boards.playerViewAIBoard[row ][col] = 'X';
     }
 
-  }
-
-}
-
-
-void aifire(int row, int col)
-{
-
-  if (boards.player[row][col] == 'O')
-  {
-    //if hit, mark '@'
-    boards.player[row ][col] = '@';
-    boards.AIViewPlayerBoard[row][col] = '@';
-    hitflag = 1;
-    currenttarget = row*10 + col;
-    hitzone[0] = row*10 + col;
-
-  }
-  else if (boards.player[row][col] != '@')
-  {
-    boards.player[row][col] = 'X';   //if not hit, mark 'X'
-    boards.AIViewPlayerBoard[row ][col] = 'X';
   }
 
 }
@@ -2473,7 +2463,136 @@ void checkhitzone()
   }
 }
 
+//check whether excalamtion mark is found, if yes, return true
+bool detectExclamation(){
+  for (int i = 0; i < boardSize; i++){
+    for (int j = 0; j < boardSize; j++){
+      if (boards.AIViewPlayerBoard[i][j] == '!'){
+        boards.AIViewPlayerBoard[i][j] = '@';
+        boards.player[i][j] = '@';
+        return true;
+      }
+    }
+  }
+  return false;
+}
 
+int aiNormalMovesSelection(){
+  bool previousSelected = false, startFinding = false;
+  int randomPosition;
+
+  //horizontal detection
+  for (int i = 0; i < boardSize; i++){
+    previousSelected = false;
+    startFinding = false;
+    for (int j = 0; j < boardSize; j++){
+      if (startFinding && boards.AIViewPlayerBoard[i][j] == '@'){
+        continue;
+      }        
+      else if (startFinding && boards.AIViewPlayerBoard[i][j] == 0){
+        return (i*10) + j;
+      }
+      else if (startFinding && boards.AIViewPlayerBoard[i][j] == 'X'){
+        startFinding = false;
+        previousSelected = false;
+        continue;
+      }
+
+      //i == 0 || (boards.AIViewPlayerBoard[i+1][j] == 0 && boards.AIViewPlayerBoard[i-1][j] == 0) || ((boards.AIViewPlayerBoard[i+1][j] != '@' && boards.AIViewPlayerBoard[i-1][j] != '@') && boards.AIViewPlayerBoard[i+1][j] != 0 && boards.AIViewPlayerBoard[i-1][j] != 0)
+      if (previousSelected && boards.AIViewPlayerBoard[i][j] == '@'){
+        previousSelected = false;
+        if (i == 0 || (boards.AIViewPlayerBoard[i+1][j] == 0 && boards.AIViewPlayerBoard[i-1][j] == 0) || (boards.AIViewPlayerBoard[i+1][j] == 'X' && boards.AIViewPlayerBoard[i-1][j] == 'X') || (boards.AIViewPlayerBoard[i+1][j] == 0 && boards.AIViewPlayerBoard[i-1][j] == 'X') || (boards.AIViewPlayerBoard[i+1][j] == 'X' && boards.AIViewPlayerBoard[i-1][j] == 0)){
+          startFinding = true;
+        }
+        continue;
+      }
+
+      if (boards.AIViewPlayerBoard[i][j] == 'X'){
+        previousSelected = true;
+        continue;
+      }
+
+      if (boards.AIViewPlayerBoard[i][j] == '@' && ! previousSelected){
+        if (i == 0 || (boards.AIViewPlayerBoard[i+1][j] == 0 && boards.AIViewPlayerBoard[i-1][j] == 0) || (boards.AIViewPlayerBoard[i+1][j] == 'X' && boards.AIViewPlayerBoard[i-1][j] == 'X') || (boards.AIViewPlayerBoard[i+1][j] == 0 && boards.AIViewPlayerBoard[i-1][j] == 'X') || (boards.AIViewPlayerBoard[i+1][j] == 'X' && boards.AIViewPlayerBoard[i-1][j] == 0)){
+          if (j == 0){
+            startFinding = true;
+            continue;
+          }
+          else if (boards.AIViewPlayerBoard[i][j-1] == 'X' || boards.AIViewPlayerBoard[i][j-1] == '@'){
+            startFinding = true;
+            continue;
+          }
+          else if (boards.AIViewPlayerBoard[i][j-1] == 0){
+            return (i*10) + (j-1);
+          }
+        }
+      }
+    }
+  }
+
+  //Vertical detection
+  for (int j = 0; j < boardSize; j++){
+    previousSelected = false;
+    startFinding = false;
+    for (int i = 0; i < boardSize; i++){
+      if (startFinding && boards.AIViewPlayerBoard[i][j] == '@'){
+        continue;
+      }        
+      else if (startFinding && boards.AIViewPlayerBoard[i][j] == 0){
+        return (i*10) + j;
+      }
+      else if (startFinding && boards.AIViewPlayerBoard[i][j] == 'X'){
+        startFinding = false;
+        previousSelected = false;
+        continue;
+      }
+
+      if (previousSelected && boards.AIViewPlayerBoard[i][j] == '@'){
+        previousSelected = false;
+        if (j == 0 || (boards.AIViewPlayerBoard[i][j+1] == 0 && boards.AIViewPlayerBoard[i][j-1] == 0) || (boards.AIViewPlayerBoard[i][j+1] == 'X' && boards.AIViewPlayerBoard[i][j-1] == 'X') || (boards.AIViewPlayerBoard[i][j+1] == 0 && boards.AIViewPlayerBoard[i][j-1] == 'X') || (boards.AIViewPlayerBoard[i][j+1] == 'X' && boards.AIViewPlayerBoard[i][j-1] == 0)){
+          startFinding = true;
+        }
+        continue;
+      }
+
+      if (boards.AIViewPlayerBoard[i][j] == 'X'){
+        previousSelected = true;
+        continue;
+      }
+
+      if (boards.AIViewPlayerBoard[i][j] == '@' && ! previousSelected){
+        if (j == 0 || (boards.AIViewPlayerBoard[i][j+1] == 0 && boards.AIViewPlayerBoard[i][j-1] == 0) || (boards.AIViewPlayerBoard[i][j+1] == 'X' && boards.AIViewPlayerBoard[i][j-1] == 'X') || (boards.AIViewPlayerBoard[i][j+1] == 0 && boards.AIViewPlayerBoard[i][j-1] == 'X') || (boards.AIViewPlayerBoard[i][j+1] == 'X' && boards.AIViewPlayerBoard[i][j-1] == 0)){
+          if (i == 0){
+            startFinding = true;
+            continue;
+          }
+          else if (boards.AIViewPlayerBoard[i-1][j] == 'X' || boards.AIViewPlayerBoard[i-1][j] == '@'){
+            startFinding = true;
+            continue;
+          }
+          else if (boards.AIViewPlayerBoard[i-1][j] == 0){
+            return ((i-1)*10) + j;
+          }
+        }
+      }
+    }
+  }
+
+
+  //randomly select a position
+  while (true){
+    randomPosition = rand() % 100;
+    if (boards.AIViewPlayerBoard[randomPosition / boardSize][randomPosition % boardSize] == 0){
+      return randomPosition;
+    }
+  }
+}
+
+void aiNormalMoves(){
+  int targetLocation;
+  targetLocation = aiNormalMovesSelection();
+  aifire(targetLocation / boardSize, targetLocation % boardSize);
+}
 
 //function for operations of the AI
 void aiops()
@@ -2612,7 +2731,8 @@ void playGame(string country){
     gameOver = gameFinished(playerWon);
     if (! gameOver)
     {
-      aiops();
+      //aiops();
+      aiNormalMoves();
     }
     gameOver = gameFinished(playerWon);
   }
@@ -2829,106 +2949,6 @@ void newGame() {
   generateRandomBoard(boards.AI);
 
   playGame(country);
-}
-
-//function to print all game records history
-void printAllRecords(GameRecords* &head){
-  GameRecords* current = head;
-
-  system("CLS");
-
-  cout << "Rank  Player Name    Game Name   Country Result Move         Date" << endl;
-  cout << "---- ------------ ------------ --------- ------ ---- ------------" << endl;
-
-  for(int i = 1; current!=NULL; i++){
-    cout << setw(4) << i << " " << setw(12) << current->playerName << " " << setw(12) << current->gameName << " ";
-    cout << setw(9) << current->country << " " << setw(6) << ((current->won) ? "Won" : "Lose") << " ";
-    cout << setw(4) << current->totalMoveUsed << " " << setw(12) << current->date << endl;
-    current = current->next;
-  }
-  current = new GameRecords;
-  delete current;
-}
-
-//function to sort and store the game history records in order of (win, then lose), then (ascending order of amount of moves used)
-void newGameRecord(GameRecords* &head, string line, int size){
-  int wonInt, movesInt;
-  string won, move, gameName, playerName, date, country;
-  bool newRecordInserted = false;
-
-  //store all information of this record into a temporary dynamic array of data
-  cout << line << endl;
-  istringstream iss(line);
-  iss >> won >> move >> playerName >> gameName >> country >> date;
-  wonInt = stoi(won);
-  movesInt = stoi(move);
-
-  GameRecords* temp = new GameRecords;
-  GameRecords* current = head;
-  GameRecords* data = new GameRecords;
-  data->won = wonInt;
-  data->totalMoveUsed = movesInt;
-  data->playerName = playerName;
-  data->gameName = gameName;
-  data->country = country;
-  data->date = date;
-  data->next = NULL;
-
-  //store records into the dynamic array in a specific order
-  if(head == NULL || (wonInt > head->won || (wonInt == head->won && movesInt <= head->totalMoveUsed))){
-    temp = head;
-    data->next = temp;
-    head = data;
-    newRecordInserted = true;
-  }
-  else{
-    while (current->next != NULL){
-      if (wonInt > current->next->won || (wonInt == current->next->won && movesInt <= current->next->totalMoveUsed)){
-        data->next = current->next;
-        current->next = data;
-
-        newRecordInserted = true;
-        break;
-      }
-      current = current->next;
-    }
-  }
-  if(!newRecordInserted){
-    current->next = data;
-  }
-
-  temp = new GameRecords;
-  current = new GameRecords;
-  data = new GameRecords;
-  delete temp;
-  delete current;
-  delete data;
-}
-
-//function to access file "Game_History.txt", extracting all game history records
-void showGameRecord(){
-  int size = 0;
-  string input, line;
-  GameRecords* head = NULL;
-
-  ifstream fin;
-  fin.open("Game_History.txt");
-  if(fin.fail()){
-    cout << "Failed opening file!" << endl;
-    exit(1);
-  }
-
-  //loop until all records in the file have been optained, and stored in a dynamic array structure
-  while(getline(fin, line)){
-    newGameRecord(head, line, size);
-  }
-  fin.close();
-
-  printAllRecords(head);
-
-  cout << endl << "Q to quit: ";
-  getline(cin, input);
-
 }
 
 //function that prints the Main Menu Screen (allow player to select choices)
