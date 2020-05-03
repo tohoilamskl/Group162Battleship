@@ -3,12 +3,12 @@
 
 #include <iostream>
 #include <fstream>
-#include <sstream> //istringstream
+#include <sstream>
 #include <cmath>
-#include <iomanip>  //setw()
-#include <cstdlib>  //rand(), srand(), system()
-#include <ctime> //time()
-#include <string> //stoi()
+#include <iomanip> 
+#include <cstdlib> 
+#include <ctime>
+#include <string>
 #include "displayGameHistory.h"
 
 using namespace std;
@@ -2477,6 +2477,7 @@ bool detectExclamation(){
   return false;
 }
 
+//function of ai generating the move, returning the position of the target
 int aiNormalMovesSelection(){
   bool previousSelected = false, startFinding = false;
   int randomPosition;
@@ -2588,9 +2589,14 @@ int aiNormalMovesSelection(){
   }
 }
 
+//function to initiate the selection of AI move, then it will make ai fire
 void aiNormalMoves(){
   int targetLocation;
+
+  //ai move selection function
   targetLocation = aiNormalMovesSelection();
+
+  //fire the missile
   aifire(targetLocation / boardSize, targetLocation % boardSize);
 }
 
@@ -2686,10 +2692,11 @@ void aiops()
 
 //function for actual game process
 void playGame(string country){
-  string input;
+  string input, trash;
   bool playerWon, gameOver = false;
   while (! gameOver) {
-    tempPrintBoard();
+    //tempPrintBoard();
+    printBoard();
 
     cout<< endl <<"AWAITING ORDER!!!"<<endl;
     cout<<"To fire regualr rounds, type the coordinate (row, column)"<<endl;
@@ -2740,6 +2747,15 @@ void playGame(string country){
   //when game is over, save game records
   if(gameOver){
     saveRecord(playerWon);
+    system("CLS");
+    if(playerWon){
+      cout << "CONGRADULATIONS!!!!! YOU WON!" << endl;
+    }
+    else{
+      cout << "You lost!" << endl;
+    }
+    cout << endl << "Press anything to continue: ";
+    cin >> trash;
   }
 
 }
@@ -2944,8 +2960,8 @@ void newGame() {
   loadGameData.totalMovesUsed = 0;
 
   genfleet(uss, kms, hms, rm, ijn, country, fleet);
-  //deployment(boards.player);
-  generateRandomBoard(boards.player);
+  deployment(boards.player);
+  //generateRandomBoard(boards.player);
   generateRandomBoard(boards.AI);
 
   playGame(country);

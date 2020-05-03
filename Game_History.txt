@@ -5,3 +5,5 @@
 0 78 Tam 5thGame gb 2019-03-21
 1 33 Omen 6thGame japan 2020-01-34
 1 23 Alex Almost us 2020-04-18
+1 58 Annie 10thGame us 2020-05-03
+1 23 Alex Almost us 2020-05-03
