@@ -42,6 +42,8 @@
 
 * Makefile has been created
 
+### Non-standard library
+* #include <unistd.h>
 
 ### Compilation and Execution Instructions:
 * Use command "g++ -pedantic-errors -std=c++11 main.cpp displayGameHistory.cpp -o main" to compile the program
