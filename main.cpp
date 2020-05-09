@@ -65,41 +65,6 @@ struct Target
   int col;
 };
 
-//A structure for storing all the planes to be used
-struct plane
-{
-  string ijn[4] = {"Type 96 Carrier Attack Bomber", "B6N \"Jill\"", "B5N \"Kate\"", "B7A Ryusei \"Grace\""};
-  string kms[2] = {"Fi 167", "He 115"};
-  string rm[1] = {"Re.2001"};
-  string uss[3] = {"TBY Sea Wolf", "TBF Avenger", "TBD Devastator"};
-  string hms[3] = {"Swordfish", "Barracuda", "Vildebeest"};
-};
-
-plane bomber;
-
-int numofplane[5] = {4,2,1,3,3};
-int plane1, plane2, planeflag, hitflag,subdirflag2, currenttarget = -1, targetchecked = 0;
-char subdir[2] = {'h','v'};
-int hitzone[9] = {-1,-1,-1,-1,-1,-1,-1,-1,-1};
-int hitcache[5] = {-1,-1,-1,-1,-1};
-int subdirh[2][2] = {{11, 18}, {81, 88}};
-int subdirv[2][2] = {{1, 91}, {8, 98}};
-
-//array for storing the recon planes used by ijn, kms, rm, uss, hms respectively
-string recon[5] = {"C6N Saiun \"Myrt\"","Arado Ar 196","Caproni Ca.316","Supermarine Walrus","OS2U Kingfisher"};
-
-//array for storing the ap shells used by ijn, kms, rm, uss, hms respectively
-string shell[5] = {"Type 1 AP shell", "38 cm SK C/34 AP shell", "Proiettile Perforante", "Mk. 8 APC shell", "Mk XXII BNT AP shell"};
-
-//array for storing the radar used by ijn, kms, rm, uss, hms respectively
-string radar[5] = {"Type 2 Mark 3 Model 3 Anti-Surface Fire-Control Radar", "FuMO 23 Seetakt radar", "EC 3 ter Gufo radar", "MK 37 Gun Fire Control System", "Type 279 early-warning radar"};
-
-//array for storing the torpedos used by ijn, kms, rm, uss, hms respectively
-string torpedo[5] = {"Type 93 torpedo", "21 inch torpedo", "533 mm torpedo", " 21-inch Mark 15 torpedo", "21-inch Mark VII torpedo"};
-
-//number of storage of planes, plane 1 attack quota, plane 2 attack quota, barrage, torpedos of heavy cruiser, torpedos of submarine respectively
-int spweapons[12] = {2,1,1,1,2,2,2,1,1,1,2,2};
-
 //function to generate today's date, return the date
 string todaysDate(){
   time_t timeNow = time(0);
@@ -676,7 +641,7 @@ bool poschecker(int row, int col, char board[][10], int size)
     {
       int flag = 0;
 
-      //check if the any ship used one of the coordinates on the left side
+      //check if any ship used one of the coordinates on the left side
       for (int i = left; i < col; i++)
       {
         if (board[row][i] == 'O')
@@ -700,7 +665,7 @@ bool poschecker(int row, int col, char board[][10], int size)
     {
       int flag = 0;
 
-      //check if the any ship used one of the coordinates on the left side
+      //check if any ship used one of the coordinates on the left side
       for (int i = col; i < right; i++)
       {
         if (board[row][i] == 'O')
@@ -724,7 +689,7 @@ bool poschecker(int row, int col, char board[][10], int size)
     {
       int flag = 0;
 
-      //check if the any ship used one of the coordinates on the north side
+      //check if any ship used one of the coordinates on the north side
       for (int i = up; i < row; i++)
       {
         if (board[i][col] == 'O')
@@ -748,7 +713,7 @@ bool poschecker(int row, int col, char board[][10], int size)
     {
       int flag = 0;
 
-      //check if the any ship used one of the coordinates on the south side
+      //check if any ship used one of the coordinates on the south side
       for (int i = row; i < bot; i++)
       {
         if (board[i][col] == 'O')
@@ -868,9 +833,6 @@ void aifire(int row, int col)
     //if hit, mark '@'
     boards.player[row ][col] = '@';
     boards.AIViewPlayerBoard[row][col] = '@';
-    hitflag = 1;
-    currenttarget = row*10 + col;
-    hitzone[0] = row*10 + col;
 
   }
   else if (boards.player[row][col] != '@')
@@ -1272,6 +1234,37 @@ void aiNormalMoves(){
   aifire(targetLocation / boardSize, targetLocation % boardSize);
 }
 
+//function to check hp of a ship
+int checkhp(int num)
+{
+  int x1 = fleet[num].xposini;
+  int x2 = fleet[num].xposfnl;
+  int y1 = fleet[num].yposini;
+  int y2 = fleet[num].yposfnl;
+  int hp = 0;
+  if (x1 == x2)
+  {
+    for (int i = y1; i <= y2; i++)
+    {
+      if (boards.player[i][x1] == 'O')
+      {
+        hp++;
+      }
+    }
+  }
+  else
+  {
+    for (int i = x1; i <= x2; i++)
+    {
+      if (boards.player[y1][i] == 'O')
+      {
+        hp++;
+      }
+    }
+  }
+
+  return hp;
+}
 //function for actual game process
 void playGame(string country){
   string input, trash;
@@ -1284,6 +1277,12 @@ void playGame(string country){
     cout<<"To fire regualr rounds, type the coordinate (row, column)"<<endl;
     cout<<"To save the game, type \"s\""<<endl;
     cout<<"To quit the game, type \"q\""<<endl;
+    cout<<"***FLEET STATUS***"<<endl;
+    cout<<fleet[0].name<<": "<<checkhp(0)<<endl;
+    cout<<fleet[1].name<<": "<<checkhp(1)<<endl;
+    cout<<fleet[2].name<<": "<<checkhp(2)<<endl;
+    cout<<fleet[3].name<<": "<<checkhp(3)<<endl;
+    cout<<fleet[4].name<<": "<<checkhp(4)<<endl;
     cout << endl;
 
     input = playerInput();
