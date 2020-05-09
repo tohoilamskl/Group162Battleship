@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <string>
+#include <unistd.h>
 #include "displayGameHistory.h"
 
 using namespace std;
@@ -205,7 +206,7 @@ void naming(ships arr[50],string s)
 
 //Function to print both your board, and opponent's board in your perspectives
 void printBoard() {
-    system("CLS"); //clear screen
+    system("tput clear"); //clear screen
     cout << setw(30) << "Opponent's Board" << setw(52) << "Your Board" << endl;
     cout << "     0   1   2   3   4   5   6   7   8   9                 0   1   2   3   4   5   6   7   8   9  \n";
     cout << "   +---+---+---+---+---+---+---+---+---+---+             +---+---+---+---+---+---+---+---+---+---+\n";
@@ -324,7 +325,7 @@ void genfleet(ships uss[50], ships kms[50], ships hms[50], ships rm[50], ships i
 
 //TEMPORARY PRINT BORAD FUNCTION (For developing stage only) (Will print all 4 boards)  (DELETE BEFORE SUBMISSION!!!!!!!!!!!)
 void tempPrintBoard() {
-    system("CLS"); //clear screen
+    system("tput clear"); //clear screen
     cout << "                                          YOUR Perspective                                  |                                       AI Perspective\n";
     cout << "               Opponent's Board                                  Your Board                 |                  AI Board                                     Your Board\n";
     cout << "     0   1   2   3   4   5   6   7   8   9        0   1   2   3   4   5   6   7   8   9     |     0   1   2   3   4   5   6   7   8   9        0   1   2   3   4   5   6   7   8   9  \n";
@@ -1323,7 +1324,7 @@ void playGame(string country){
   //when game is over, save game records
   if(gameOver){
     saveRecord(playerWon);
-    system("CLS");
+    system("tput clear");
     if(playerWon){
       cout << "CONGRADULATIONS!!!!! YOU WON!" << endl;
     }
@@ -1351,7 +1352,7 @@ bool displayExistingGames(string existingID[]){
   int count = 0;
   bool gameExist = false;
 
-  system("CLS");
+  system("tput clear");
   cout << "All existing game:\n";
   cout << "ID " << setw(13) << "Player Name" << setw(13) << "Game Name" << setw(10) << "Country";
   cout << setw(5) << "Move" << setw(13) << "Date" << setw(8) << "Time" << endl;
@@ -1509,7 +1510,7 @@ void newGame() {
   naming(rm,"RM");
   naming(ijn,"IJN");
 
-  system("CLS");
+  system("tput clear");
   int flag = 0;
   cout<<"To play as the United States, type \"us\""<<endl;
   cout<<"To play as Great Britain, type \"gb\""<<endl;
@@ -1545,7 +1546,7 @@ void newGame() {
 
 //function that prints the Main Menu Screen (allow player to select choices)
 int mainMenu(){
-  system("CLS");
+  system("tput clear");
   string choice;
 
   //main menu screen
