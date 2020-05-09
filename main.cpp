@@ -1124,7 +1124,7 @@ int aiNormalMovesSelection(){
       if (startFinding && boards.AIViewPlayerBoard[i][j] == '@'){
         continue;
       }
-      else if (startFinding && boards.AIViewPlayerBoard[i][j] == 0){
+      else if (startFinding && boards.AIViewPlayerBoard[i][j] == ' '){
         return (i*10) + j;
       }
       else if (startFinding && boards.AIViewPlayerBoard[i][j] == 'X'){
@@ -1136,7 +1136,7 @@ int aiNormalMovesSelection(){
       //i == 0 || (boards.AIViewPlayerBoard[i+1][j] == 0 && boards.AIViewPlayerBoard[i-1][j] == 0) || ((boards.AIViewPlayerBoard[i+1][j] != '@' && boards.AIViewPlayerBoard[i-1][j] != '@') && boards.AIViewPlayerBoard[i+1][j] != 0 && boards.AIViewPlayerBoard[i-1][j] != 0)
       if (previousSelected && boards.AIViewPlayerBoard[i][j] == '@'){
         previousSelected = false;
-        if (i == 0 || (boards.AIViewPlayerBoard[i+1][j] == 0 && boards.AIViewPlayerBoard[i-1][j] == 0) || (boards.AIViewPlayerBoard[i+1][j] == 'X' && boards.AIViewPlayerBoard[i-1][j] == 'X') || (boards.AIViewPlayerBoard[i+1][j] == 0 && boards.AIViewPlayerBoard[i-1][j] == 'X') || (boards.AIViewPlayerBoard[i+1][j] == 'X' && boards.AIViewPlayerBoard[i-1][j] == 0)){
+        if (i == 0 || (boards.AIViewPlayerBoard[i+1][j] == ' ' && boards.AIViewPlayerBoard[i-1][j] == ' ') || (boards.AIViewPlayerBoard[i+1][j] == 'X' && boards.AIViewPlayerBoard[i-1][j] == 'X') || (boards.AIViewPlayerBoard[i+1][j] == ' ' && boards.AIViewPlayerBoard[i-1][j] == 'X') || (boards.AIViewPlayerBoard[i+1][j] == 'X' && boards.AIViewPlayerBoard[i-1][j] == ' ')){
           startFinding = true;
         }
         continue;
@@ -1148,7 +1148,7 @@ int aiNormalMovesSelection(){
       }
 
       if (boards.AIViewPlayerBoard[i][j] == '@' && ! previousSelected){
-        if (i == 0 || (boards.AIViewPlayerBoard[i+1][j] == 0 && boards.AIViewPlayerBoard[i-1][j] == 0) || (boards.AIViewPlayerBoard[i+1][j] == 'X' && boards.AIViewPlayerBoard[i-1][j] == 'X') || (boards.AIViewPlayerBoard[i+1][j] == 0 && boards.AIViewPlayerBoard[i-1][j] == 'X') || (boards.AIViewPlayerBoard[i+1][j] == 'X' && boards.AIViewPlayerBoard[i-1][j] == 0)){
+        if (i == 0 || (boards.AIViewPlayerBoard[i+1][j] == ' ' && boards.AIViewPlayerBoard[i-1][j] == ' ') || (boards.AIViewPlayerBoard[i+1][j] == 'X' && boards.AIViewPlayerBoard[i-1][j] == 'X') || (boards.AIViewPlayerBoard[i+1][j] == ' ' && boards.AIViewPlayerBoard[i-1][j] == 'X') || (boards.AIViewPlayerBoard[i+1][j] == 'X' && boards.AIViewPlayerBoard[i-1][j] == ' ')){
           if (j == 0){
             startFinding = true;
             continue;
@@ -1157,7 +1157,7 @@ int aiNormalMovesSelection(){
             startFinding = true;
             continue;
           }
-          else if (boards.AIViewPlayerBoard[i][j-1] == 0){
+          else if (boards.AIViewPlayerBoard[i][j-1] == ' '){
             return (i*10) + (j-1);
           }
         }
@@ -1173,7 +1173,7 @@ int aiNormalMovesSelection(){
       if (startFinding && boards.AIViewPlayerBoard[i][j] == '@'){
         continue;
       }
-      else if (startFinding && boards.AIViewPlayerBoard[i][j] == 0){
+      else if (startFinding && boards.AIViewPlayerBoard[i][j] == ' '){
         return (i*10) + j;
       }
       else if (startFinding && boards.AIViewPlayerBoard[i][j] == 'X'){
@@ -1184,7 +1184,7 @@ int aiNormalMovesSelection(){
 
       if (previousSelected && boards.AIViewPlayerBoard[i][j] == '@'){
         previousSelected = false;
-        if (j == 0 || (boards.AIViewPlayerBoard[i][j+1] == 0 && boards.AIViewPlayerBoard[i][j-1] == 0) || (boards.AIViewPlayerBoard[i][j+1] == 'X' && boards.AIViewPlayerBoard[i][j-1] == 'X') || (boards.AIViewPlayerBoard[i][j+1] == 0 && boards.AIViewPlayerBoard[i][j-1] == 'X') || (boards.AIViewPlayerBoard[i][j+1] == 'X' && boards.AIViewPlayerBoard[i][j-1] == 0)){
+        if (j == 0 || (boards.AIViewPlayerBoard[i][j+1] == ' ' && boards.AIViewPlayerBoard[i][j-1] == ' ') || (boards.AIViewPlayerBoard[i][j+1] == 'X' && boards.AIViewPlayerBoard[i][j-1] == 'X') || (boards.AIViewPlayerBoard[i][j+1] == ' ' && boards.AIViewPlayerBoard[i][j-1] == 'X') || (boards.AIViewPlayerBoard[i][j+1] == 'X' && boards.AIViewPlayerBoard[i][j-1] == ' ')){
           startFinding = true;
         }
         continue;
@@ -1196,7 +1196,7 @@ int aiNormalMovesSelection(){
       }
 
       if (boards.AIViewPlayerBoard[i][j] == '@' && ! previousSelected){
-        if (j == 0 || (boards.AIViewPlayerBoard[i][j+1] == 0 && boards.AIViewPlayerBoard[i][j-1] == 0) || (boards.AIViewPlayerBoard[i][j+1] == 'X' && boards.AIViewPlayerBoard[i][j-1] == 'X') || (boards.AIViewPlayerBoard[i][j+1] == 0 && boards.AIViewPlayerBoard[i][j-1] == 'X') || (boards.AIViewPlayerBoard[i][j+1] == 'X' && boards.AIViewPlayerBoard[i][j-1] == 0)){
+        if (j == 0 || (boards.AIViewPlayerBoard[i][j+1] == ' ' && boards.AIViewPlayerBoard[i][j-1] == ' ') || (boards.AIViewPlayerBoard[i][j+1] == 'X' && boards.AIViewPlayerBoard[i][j-1] == 'X') || (boards.AIViewPlayerBoard[i][j+1] == ' ' && boards.AIViewPlayerBoard[i][j-1] == 'X') || (boards.AIViewPlayerBoard[i][j+1] == 'X' && boards.AIViewPlayerBoard[i][j-1] == ' ')){
           if (i == 0){
             startFinding = true;
             continue;
@@ -1205,7 +1205,7 @@ int aiNormalMovesSelection(){
             startFinding = true;
             continue;
           }
-          else if (boards.AIViewPlayerBoard[i-1][j] == 0){
+          else if (boards.AIViewPlayerBoard[i-1][j] == ' '){
             return ((i-1)*10) + j;
           }
         }
@@ -1217,7 +1217,7 @@ int aiNormalMovesSelection(){
   //randomly select a position
   while (true){
     randomPosition = rand() % 100;
-    if (boards.AIViewPlayerBoard[randomPosition / boardSize][randomPosition % boardSize] == 0){
+    if (boards.AIViewPlayerBoard[randomPosition / boardSize][randomPosition % boardSize] == ' '){
       return randomPosition;
     }
   }
@@ -1599,7 +1599,7 @@ int mainMenu(){
 void wipeBoard(char board[][boardSize]){
   for(int i = 0; i < boardSize; i++){
     for(int j = 0; j < boardSize; j++){
-      board[i][j] = (char) 0;
+      board[i][j] = ' ';
     }
   }
 }
