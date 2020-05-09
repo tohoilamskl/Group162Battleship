@@ -44,6 +44,6 @@
 
 
 ### Compilation and Execution Instructions:
-* Use command "Makefile main" to compile the program
+* Use command "g++ -pedantic-errors -std=c++11 main.cpp displayGameHistory.cpp -o main" to compile the program
 
 * Use command "./main" to execute the program
