@@ -47,3 +47,5 @@
 * Use command "g++ -pedantic-errors -std=c++11 main.cpp displayGameHistory.cpp -o main" to compile the program
 
 * Use command "./main" to execute the program
+
+* please enlarge the terminal screen to display the boards correctly if necessary
